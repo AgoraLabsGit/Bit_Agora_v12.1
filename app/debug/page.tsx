@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Zap, Trash2, Download, User as UserIcon, RefreshCw } from "lucide-react"
+import { Zap, Trash2, Download, User as UserIcon, RefreshCw, Activity } from "lucide-react"
 // Debug panel now uses real APIs instead of mock data
 
 interface User {
@@ -97,7 +97,7 @@ export default function DebugPage() {
         }
       } catch (error) {
         console.error('Error clearing data:', error)
-        alert('❌ Error clearing data: ' + error.message)
+        alert('❌ Error clearing data: ' + (error instanceof Error ? error.message : String(error)))
       } finally {
         setIsLoading(false)
       }

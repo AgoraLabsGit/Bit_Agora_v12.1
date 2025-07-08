@@ -18,23 +18,12 @@ import {
   Receipt,
   ShoppingCart
 } from "lucide-react"
-import { PaymentModal } from "@/components/ui/payment-modal"
+import { PaymentModalWrapper } from '@/components/pos/payment/PaymentModalWrapper'
 import { TaxCalculator, TaxConfiguration, TaxCalculationResult, formatTaxAmount } from '@/lib/tax-calculation'
+import { ProductCard } from './components/InventoryIndicator'
+import { Product, CartItem, PRODUCT_CATEGORIES, isProductAvailable } from './types/product'
 
-// Real product interfaces and utilities
-interface Product {
-  id: string
-  name: string
-  price: number
-  category: string
-  emoji: string
-  description?: string
-  stockQuantity?: number
-}
-
-interface CartItem extends Product {
-  quantity: number
-}
+// Real product interfaces and utilities imported from types/product.ts
 
 // Utility functions
 const calculateTotal = (cartItems: CartItem[]): number => {
@@ -45,14 +34,8 @@ const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`
 }
 
-// Categories for filtering
-const categories = [
-  { id: 'all', name: 'All Items' },
-  { id: 'drinks', name: 'Drinks' },
-  { id: 'food', name: 'Food' },
-  { id: 'sides', name: 'Sides' },
-  { id: 'desserts', name: 'Desserts' }
-]
+// Categories for filtering - using imported constants
+const categories = PRODUCT_CATEGORIES
 
 export default function POSPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -236,7 +219,10 @@ export default function POSPage() {
         price: parseFloat(customAmount),
         category: 'custom',
         emoji: '💰',
-        description: customDescription || 'Custom amount entry'
+        description: customDescription || 'Custom amount entry',
+        stockQuantity: 999, // Custom products have unlimited stock
+        isOutOfStock: false,
+        lowStockThreshold: 0
       }
       addToCart(customProduct)
       setCustomAmount('')
@@ -336,17 +322,12 @@ export default function POSPage() {
                 </div>
               ) : (
                 filteredProducts.map(product => (
-                  <Card
+                  <ProductCard
                     key={product.id}
-                    className="bg-background rounded-lg p-3 sm:p-4 border border-border hover:shadow-md cursor-pointer transition-all touch-manipulation active:scale-95 min-h-[120px] sm:min-h-[140px] lg:min-h-[160px]"
-                    onClick={() => addToCart(product)}
-                  >
-                    <div className="text-center h-full flex flex-col justify-center">
-                      <div className="text-2xl sm:text-3xl lg:text-4xl mb-2">{product.emoji}</div>
-                      <h3 className="text-xs sm:text-sm font-medium text-foreground mb-1 line-clamp-2">{product.name}</h3>
-                      <p className="text-xs sm:text-sm font-semibold text-primary">{formatPrice(product.price)}</p>
-                    </div>
-                  </Card>
+                    product={product}
+                    onAddToCart={addToCart}
+                    lowStockThreshold={product.lowStockThreshold || 5}
+                  />
                 ))
               )}
             </div>
@@ -470,14 +451,14 @@ export default function POSPage() {
       </main>
 
       {/* Payment Modal */}
-      <PaymentModal 
+      <PaymentModalWrapper 
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         amount={total}
         cartItems={cartItems}
         onPaymentComplete={handlePaymentComplete}
         taxCalculation={taxCalculation}
-        taxConfig={taxConfig}
+        taxConfig={taxConfig || undefined}
       />
 
       {/* Custom Amount Modal */}

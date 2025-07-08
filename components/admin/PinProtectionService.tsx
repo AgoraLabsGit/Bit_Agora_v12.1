@@ -308,7 +308,7 @@ export function PinProtectionProvider({ children }: { children: ReactNode }) {
             firstName: employee.firstName,
             lastName: employee.lastName,
             role: employee.role,
-            permissions: employee.permissions || defaultPermissions[employee.role],
+            permissions: employee.permissions || defaultPermissions[employee.role as keyof typeof defaultPermissions],
             authenticatedAt: new Date().toISOString()
           }
           

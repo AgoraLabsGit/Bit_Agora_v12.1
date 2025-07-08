@@ -32,6 +32,8 @@ export interface Product {
   description?: string
   inStock: boolean
   stockQuantity: number
+  isOutOfStock?: boolean
+  lowStockThreshold?: number
   createdAt: string
   updatedAt: string
   merchantId: string
@@ -42,12 +44,15 @@ export interface Transaction {
   merchantId: string
   items: CartItem[]
   total: number
-  paymentMethod: 'cash' | 'card' | 'bitcoin' | 'lightning' | 'usdt' | 'qr'
+  paymentMethod: 'cash' | 'card' | 'bitcoin' | 'lightning' | 'usdt-eth' | 'usdt-tron' | 'qr-code' | 'stripe'
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded'
   employeeId: string
   customerId?: string
   createdAt: string
   completedAt?: string
+  // Cash payment specific fields
+  amountTendered?: number
+  change?: number
 }
 
 export interface Employee {

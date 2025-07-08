@@ -12,7 +12,7 @@ const TransactionSchema = z.object({
     emoji: z.string(),
   })),
   total: z.number().min(0, 'Total must be positive'),
-  paymentMethod: z.enum(['cash', 'card', 'bitcoin', 'lightning', 'usdt', 'qr']),
+  paymentMethod: z.enum(['cash', 'card', 'bitcoin', 'lightning', 'usdt-eth', 'usdt-tron', 'qr-code', 'stripe']),
   paymentStatus: z.enum(['pending', 'completed', 'failed', 'refunded']).default('pending'),
   employeeId: z.string().min(1, 'Employee ID is required'),
   customerId: z.string().optional(),
@@ -20,6 +20,9 @@ const TransactionSchema = z.object({
   customerAddress: z.string().optional(), // Allow crypto customer addresses
   refundedBy: z.string().optional(), // Track who processed refunds
   refundedAt: z.string().optional(), // Track when refunds were processed
+  // Cash payment specific fields
+  amountTendered: z.number().optional(), // Amount customer gave
+  change: z.number().optional(), // Change returned to customer
 })
 
 function getCurrentMerchantId(): string {
@@ -52,8 +55,21 @@ export async function POST(request: NextRequest) {
     const merchantId = getCurrentMerchantId()
     const transactionData = await request.json()
     
+    // Validate the transaction data
+    const validation = TransactionSchema.safeParse(transactionData)
+    if (!validation.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Invalid transaction data',
+          details: validation.error.issues
+        },
+        { status: 400 }
+      )
+    }
+    
     const result = await mockAPI.createTransaction({
-      ...transactionData,
+      ...validation.data,
       merchantId
     })
     

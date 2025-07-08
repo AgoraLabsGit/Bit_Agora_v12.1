@@ -10,6 +10,8 @@ const ProductSchema = z.object({
   description: z.string().optional(),
   inStock: z.boolean().default(true),
   stockQuantity: z.number().min(0, 'Stock quantity must be positive').default(0),
+  isOutOfStock: z.boolean().default(false),
+  lowStockThreshold: z.number().min(0, 'Low stock threshold must be positive').default(5),
 })
 
 function getCurrentMerchantId(): string {

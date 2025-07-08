@@ -118,7 +118,7 @@ export class PaymentSettingsAPI {
         ? response.data 
         : [response.data]
       
-      return this.transformApiQRProvidersToForm(qrData.filter(Boolean))
+      return this.transformApiQRProvidersToForm(qrData.filter((item): item is QRProviderApiData => item !== undefined))
     } catch (error) {
       if (error instanceof BitAgoraError) {
         throw new BitAgoraError(BitAgoraErrorType.QR_ERROR, error.message)

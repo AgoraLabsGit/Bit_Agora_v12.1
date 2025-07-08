@@ -90,7 +90,7 @@ export function validateBitcoinAddress(address: string, network: 'mainnet' | 'te
     }
 
     const networkType = network === 'testnet' ? 'testnet' : 'prod'
-    const isValid = WAValidator.validate(address, 'bitcoin', networkType)
+    const isValid = WAValidator.validate(address, 'bitcoin', { networkType })
     
     if (!isValid) {
       return {
