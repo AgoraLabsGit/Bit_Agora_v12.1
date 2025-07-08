@@ -79,7 +79,7 @@ export default function PaymentMethodsPage() {
     return (
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16 sm:h-20">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -89,7 +89,7 @@ export default function PaymentMethodsPage() {
           </div>
         </header>
 
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center py-12">
             <div className="text-center max-w-md">
               <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
@@ -122,7 +122,7 @@ export default function PaymentMethodsPage() {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-card border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16 sm:h-20">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-6 w-6 text-primary" />
@@ -133,7 +133,7 @@ export default function PaymentMethodsPage() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="mb-6">
           <p className="text-muted-foreground">
             Configure your payment methods and QR payment systems to accept payments.
