@@ -15,6 +15,13 @@ import { CryptocurrencySection } from './components/CryptocurrencySection'
 import { QRProvidersSection } from './components/QRProvidersSection'
 import { SecuritySettingsSection } from './components/SecuritySettingsSection'
 import { SaveControls } from './components/SaveControls'
+import { PaymentMethodsPageSkeleton } from './components/SkeletonLoader'
+import { 
+  ErrorBoundary, 
+  PaymentMethodErrorBoundary, 
+  CryptoErrorBoundary, 
+  QRProviderErrorBoundary 
+} from './components/ErrorBoundary'
 
 export default function PaymentMethodsPage() {
   // Using our new custom hook following BitAgora patterns
@@ -36,13 +43,13 @@ export default function PaymentMethodsPage() {
   } = usePaymentSettings()
 
   // Updated handlers to use our new hook functions
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     if (field.startsWith('fees.')) {
       const feeType = field.split('.')[1] as keyof typeof fees
-      updateFeeField(feeType, value)
+      updateFeeField(feeType, value as string)
     } else if (field.startsWith('credentials.')) {
       const credentialField = field.split('.')[1] as keyof typeof credentials
-      updateCredentialField(credentialField, value)
+      updateCredentialField(credentialField, value as string)
     } else {
       updateField(field as keyof typeof formData, value)
     }
@@ -63,41 +70,9 @@ export default function PaymentMethodsPage() {
     }
   }
 
-  // Show loading state
+  // Show loading state with smooth skeleton animation
   if (loading.initial) {
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="bg-card border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/admin" className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Admin
-                  </Link>
-                </Button>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-6 w-6 text-primary" />
-                  <h1 className="text-xl font-semibold text-foreground">Payment Methods & QR Setup</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading payment settings...</p>
-            </div>
-          </div>
-        </main>
-      </div>
-    )
+    return <PaymentMethodsPageSkeleton />
   }
 
   // Show error state
@@ -147,29 +122,36 @@ export default function PaymentMethodsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin" className="flex items-center gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Admin
-                </Link>
-              </Button>
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-semibold text-foreground">Payment Methods & QR Setup</h1>
+    <ErrorBoundary
+      fallbackTitle="Payment Settings Error"
+      fallbackDescription="There was an issue loading the payment settings page. This might be a temporary problem with the application."
+      onError={(error, errorInfo) => {
+        console.error('Payment Settings Page Error:', error.message)
+      }}
+    >
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-card border-b border-border">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/admin" className="flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Admin
+                  </Link>
+                </Button>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                  <h1 className="text-xl font-semibold text-foreground">Payment Methods & QR Setup</h1>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <p className="text-muted-foreground">
             Configure your payment methods and QR payment systems to accept payments.
@@ -192,67 +174,74 @@ export default function PaymentMethodsPage() {
             </CardContent>
           </Card>
 
-          {/* Cash Payments */}
-          <PaymentMethodCard
-            title="Cash Payments"
-            description="Physical cash payments - no fees, no setup required"
-            icon={Wallet}
-            enabled={formData.acceptCash}
-            onEnabledChange={(enabled) => handleCheckboxChange('acceptCash', enabled)}
-          />
+          {/* Payment Method Cards with Error Boundaries */}
+          <PaymentMethodErrorBoundary>
+            {/* Cash Payments */}
+            <PaymentMethodCard
+              title="Cash Payments"
+              description="Physical cash payments - no fees, no setup required"
+              icon={Wallet}
+              enabled={formData.acceptCash}
+              onEnabledChange={(enabled) => handleCheckboxChange('acceptCash', enabled)}
+            />
 
-          {/* Card Payments */}
-          <PaymentMethodCard
-            title="Card Payments"
-            description="Credit/debit card processing with Stripe, PayPal, and Square"
-            icon={CreditCard}
-            enabled={false}
-            onEnabledChange={() => {}}
-            status="coming-soon"
-            statusText="Coming Soon in Phase 2"
-          >
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Coming Soon in Phase 2</p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Credit/debit card processing with Stripe, PayPal, and Square will be available in Phase 2 of our development roadmap. 
-                    For now, focus on cash and regional QR payments for your MVP.
-                  </p>
+            {/* Card Payments */}
+            <PaymentMethodCard
+              title="Card Payments"
+              description="Credit/debit card processing with Stripe, PayPal, and Square"
+              icon={CreditCard}
+              enabled={false}
+              onEnabledChange={() => {}}
+              status="coming-soon"
+              statusText="Coming Soon in Phase 2"
+            >
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Coming Soon in Phase 2</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Credit/debit card processing with Stripe, PayPal, and Square will be available in Phase 2 of our development roadmap. 
+                      For now, focus on cash and regional QR payments for your MVP.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </PaymentMethodCard>
+            </PaymentMethodCard>
+          </PaymentMethodErrorBoundary>
 
-          {/* Cryptocurrency Payments */}
-          <CryptocurrencySection
-            data={{
-              acceptBitcoin: formData.acceptBitcoin,
-              acceptBitcoinLightning: formData.acceptBitcoinLightning,
-              acceptUsdtEthereum: formData.acceptUsdtEthereum,
-              acceptUsdtTron: formData.acceptUsdtTron,
-              bitcoinWalletAddress: formData.bitcoinWalletAddress,
-              bitcoinLightningAddress: formData.bitcoinLightningAddress,
-              usdtEthereumWalletAddress: formData.usdtEthereumWalletAddress,
-              usdtTronWalletAddress: formData.usdtTronWalletAddress,
-              bitcoinDiscount: formData.bitcoinDiscount,
-              lightningDiscount: formData.lightningDiscount,
-              usdtEthDiscount: formData.usdtEthDiscount,
-              usdtTronDiscount: formData.usdtTronDiscount
-            }}
-            onFieldChange={handleInputChange}
-          />
+          {/* Cryptocurrency Payments with Error Boundary */}
+          <CryptoErrorBoundary>
+            <CryptocurrencySection
+              data={{
+                acceptBitcoin: formData.acceptBitcoin,
+                acceptBitcoinLightning: formData.acceptBitcoinLightning,
+                acceptUsdtEthereum: formData.acceptUsdtEthereum,
+                acceptUsdtTron: formData.acceptUsdtTron,
+                bitcoinWalletAddress: formData.bitcoinWalletAddress,
+                bitcoinLightningAddress: formData.bitcoinLightningAddress,
+                usdtEthereumWalletAddress: formData.usdtEthereumWalletAddress,
+                usdtTronWalletAddress: formData.usdtTronWalletAddress,
+                bitcoinDiscount: formData.bitcoinDiscount,
+                lightningDiscount: formData.lightningDiscount,
+                usdtEthDiscount: formData.usdtEthDiscount,
+                usdtTronDiscount: formData.usdtTronDiscount
+              }}
+              onFieldChange={handleInputChange}
+            />
+          </CryptoErrorBoundary>
 
-          {/* QR Payment Systems */}
-          <QRProvidersSection
-            enableQRPayments={formData.enableQRPayments || false}
-            qrProviders={formData.customQRProviders}
-            onToggleQRPayments={(enabled) => handleCheckboxChange('enableQRPayments', enabled)}
-            onAddProvider={addQRProvider}
-            onUpdateProvider={updateQRProvider}
-            onRemoveProvider={removeQRProvider}
-          />
+          {/* QR Payment Systems with Error Boundary */}
+          <QRProviderErrorBoundary>
+            <QRProvidersSection
+              enableQRPayments={formData.enableQRPayments || false}
+              qrProviders={formData.customQRProviders}
+              onToggleQRPayments={(enabled) => handleCheckboxChange('enableQRPayments', enabled)}
+              onAddProvider={addQRProvider}
+              onUpdateProvider={updateQRProvider}
+              onRemoveProvider={removeQRProvider}
+            />
+          </QRProviderErrorBoundary>
 
           {/* Security Settings */}
           <SecuritySettingsSection
@@ -269,10 +258,11 @@ export default function PaymentMethodsPage() {
             onSave={handleSubmit}
             loading={loading.saving}
             saved={isSaved}
-            error={errors.saving}
+            error={errors.saving || undefined}
           />
         </div>
       </main>
     </div>
+    </ErrorBoundary>
   )
 }
