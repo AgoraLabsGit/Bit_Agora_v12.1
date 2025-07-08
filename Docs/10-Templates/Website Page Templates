@@ -1,0 +1,387 @@
+# BitAgora POS - Website Page Templates
+## Marketing & Content Pages Using Application Styling
+
+### **Overview**
+These templates extend the application's design system to marketing and content pages, ensuring complete visual consistency between the website and the application.
+
+---
+
+## **🎨 Shared Design System**
+
+### **Same Color Palette & Typography**
+All website pages use the **identical styling system** as the application:
+- **Background**: `#0f172a` (same dark theme)
+- **Primary**: `#60a5fa` (same blue accent)
+- **Typography**: Same font system and sizing
+- **Components**: Same button styles, form elements, cards
+
+### **Website-Specific Adaptations**
+- **Marketing focus**: Hero sections, feature grids, pricing tables
+- **Content structure**: Headers, navigation, footers
+- **Call-to-action**: Conversion-optimized buttons leading to registration
+
+---
+
+## **📋 Template 1: Landing Page**
+
+### **Layout Structure**
+```tsx
+Page Container:
+- Full viewport: `min-h-screen bg-background`
+- Header: `sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border`
+- Main content: `flex-1`
+- Footer: `bg-card border-t border-border`
+
+Header Navigation:
+- Container: `max-w-6xl mx-auto px-4 h-16 flex items-center justify-between`
+- Logo: `<Zap className="h-8 w-8 text-primary" />` + `text-2xl font-light tracking-tight`
+- Navigation: `hidden md:flex gap-6`
+- Nav links: `text-sm font-medium hover:text-primary transition-colors`
+- CTA button: `bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90`
+```
+
+### **Hero Section**
+```tsx
+Hero Container:
+- Layout: `py-20 px-4`
+- Max width: `max-w-6xl mx-auto text-center`
+- Background: `bg-gradient-to-b from-background to-background/50`
+
+Hero Content:
+- Main headline: `text-4xl md:text-6xl font-bold text-foreground mb-6`
+- Subheadline: `text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto`
+- CTA button: `bg-primary text-primary-foreground px-8 py-4 rounded-md text-lg font-semibold hover:bg-primary/90`
+- Secondary CTA: `text-primary hover:underline ml-6`
+
+Hero Visual:
+- Container: `mt-12 relative`
+- Screenshot: `rounded-lg shadow-2xl border border-border`
+- Overlay: `absolute inset-0 bg-gradient-to-t from-background/20 to-transparent`
+```
+
+### **Features Section**
+```tsx
+Features Container:
+- Layout: `py-20 px-4 bg-card/50`
+- Max width: `max-w-6xl mx-auto`
+- Section header: `text-center mb-16`
+
+Section Header:
+- Title: `text-3xl md:text-4xl font-bold text-foreground mb-4`
+- Subtitle: `text-xl text-muted-foreground max-w-3xl mx-auto`
+
+Features Grid:
+- Layout: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8`
+- Feature card: `bg-card rounded-lg p-6 border border-border hover:shadow-lg transition-shadow`
+- Icon: `h-12 w-12 text-primary mb-4`
+- Title: `text-xl font-semibold text-foreground mb-2`
+- Description: `text-muted-foreground`
+
+Key Features:
+1. Crypto Payments (Bitcoin icon)
+2. Dark UI (Moon icon)
+3. Multi-Payment (CreditCard icon)
+4. Real-time Analytics (BarChart icon)
+5. Employee Management (Users icon)
+6. Inventory Tracking (Package icon)
+```
+
+### **Pricing Section**
+```tsx
+Pricing Container:
+- Layout: `py-20 px-4`
+- Max width: `max-w-6xl mx-auto text-center`
+
+Pricing Header:
+- Title: `text-3xl md:text-4xl font-bold text-foreground mb-4`
+- Subtitle: `text-xl text-muted-foreground mb-16`
+
+Pricing Grid:
+- Layout: `grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto`
+- Pricing card: `bg-card rounded-lg p-8 border border-border relative`
+- Popular badge: `absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium`
+
+Pricing Card Structure:
+- Plan name: `text-2xl font-bold text-foreground mb-2`
+- Price: `text-4xl font-bold text-primary mb-1`
+- Billing cycle: `text-sm text-muted-foreground mb-6`
+- Features list: `space-y-3 mb-8`
+- Feature item: `flex items-center gap-3`
+- Check icon: `h-5 w-5 text-primary`
+- Feature text: `text-sm text-foreground`
+- CTA button: `w-full bg-primary text-primary-foreground py-3 rounded-md hover:bg-primary/90`
+
+Pricing Tiers:
+1. Free: $0/month
+2. Basic: $29/month (Popular)
+3. Pro: $99/month
+```
+
+### **Footer**
+```tsx
+Footer Container:
+- Layout: `py-12 px-4 bg-card border-t border-border`
+- Max width: `max-w-6xl mx-auto`
+
+Footer Content:
+- Grid: `grid grid-cols-1 md:grid-cols-4 gap-8`
+- Company section: `col-span-1 md:col-span-2`
+- Logo: Same as header
+- Description: `text-sm text-muted-foreground mt-4 max-w-md`
+- Links sections: `space-y-4`
+- Section title: `text-sm font-semibold text-foreground mb-3`
+- Link: `text-sm text-muted-foreground hover:text-primary transition-colors`
+
+Footer Bottom:
+- Container: `mt-8 pt-8 border-t border-border flex items-center justify-between`
+- Copyright: `text-sm text-muted-foreground`
+- Social links: `flex gap-4`
+```
+
+---
+
+## **📋 Template 2: Onboarding Flow**
+
+### **Layout Structure**
+```tsx
+Onboarding Container:
+- Same as registration: `min-h-screen bg-background flex items-center justify-center p-8`
+- Card: `w-full max-w-2xl bg-card rounded-lg shadow-lg p-8`
+
+Header Section:
+- Same logo styling as registration
+- Welcome message: `text-2xl font-semibold text-foreground mb-2`
+- Step description: `text-muted-foreground mb-8`
+
+Progress Indicator:
+- Same as registration multi-step form
+- Shows current step in onboarding process
+- Steps: Welcome → Admin Setup → Business Setup → Payment Setup
+```
+
+### **Business Setup Form**
+```tsx
+Form Layout:
+- Same form styling as registration
+- Section groups: `space-y-8`
+- Section headers: `text-lg font-semibold text-foreground mb-4`
+
+Business Information:
+- Business name: Required field
+- Industry: Select dropdown
+- Business type: Radio buttons
+- Address: Multiple fields
+- Phone/Email: Contact information
+
+Business Branding:
+- Logo upload: `border-2 border-dashed border-border rounded-lg p-8 text-center`
+- Color scheme: Color picker (optional)
+- Business hours: Time inputs
+
+Tax & Legal:
+- Tax ID: Optional field
+- Business registration: Optional
+- Terms acceptance: Required checkbox
+```
+
+### **Payment Setup Form**
+```tsx
+Payment Configuration:
+- Same form styling
+- Payment methods: Checkbox group
+- Wallet addresses: Optional text inputs
+- Provider settings: Expandable sections
+
+Payment Methods:
+- Cash: Always enabled
+- Credit Cards: Stripe integration
+- Bitcoin: Wallet address
+- Lightning: Provider setup
+- USDT: Wallet addresses
+- Mercado Pago: Regional option
+
+Integration Testing:
+- Test connection buttons
+- Status indicators: `text-primary` (connected), `text-muted-foreground` (not configured)
+- Help text: `text-sm text-muted-foreground`
+```
+
+### **Navigation**
+```tsx
+Navigation Buttons:
+- Same button styling as registration
+- Back button: `bg-secondary text-secondary-foreground`
+- Next button: `bg-primary text-primary-foreground`
+- Skip option: `text-primary hover:underline`
+- Progress saving: Auto-save with indicator
+```
+
+---
+
+## **📋 Template 3: Content Pages**
+
+### **Layout Structure**
+```tsx
+Content Page Container:
+- Header: Same as landing page
+- Main: `max-w-4xl mx-auto px-4 py-12`
+- Sidebar: `w-64 space-y-6` (optional)
+- Footer: Same as landing page
+
+Content Header:
+- Page title: `text-3xl md:text-4xl font-bold text-foreground mb-4`
+- Breadcrumb: `text-sm text-muted-foreground mb-8`
+- Last updated: `text-xs text-muted-foreground`
+```
+
+### **About Page**
+```tsx
+About Sections:
+- Company story: `prose prose-invert max-w-none`
+- Mission/Vision: `bg-card rounded-lg p-6 border border-border`
+- Team section: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`
+- Team member: `bg-card rounded-lg p-4 text-center`
+- Member photo: `w-20 h-20 rounded-full mx-auto mb-4`
+- Member name: `text-lg font-semibold text-foreground`
+- Member role: `text-sm text-muted-foreground`
+```
+
+### **Pricing Page**
+```tsx
+Pricing Detailed:
+- Same pricing cards as landing page
+- Feature comparison table: `w-full border-collapse`
+- Table header: `bg-card border-b border-border`
+- Table cell: `p-4 border-b border-border`
+- Check mark: `text-primary`
+- FAQ section: `space-y-4`
+- FAQ item: `bg-card rounded-lg p-4 border border-border`
+```
+
+### **Features Page**
+```tsx
+Features Detailed:
+- Feature showcase: `space-y-16`
+- Feature section: `grid grid-cols-1 lg:grid-cols-2 gap-12 items-center`
+- Feature content: `space-y-4`
+- Feature title: `text-2xl font-bold text-foreground`
+- Feature description: `text-muted-foreground`
+- Feature image: `rounded-lg shadow-lg border border-border`
+- Feature list: `space-y-2`
+- List item: `flex items-center gap-3`
+```
+
+### **Help/Support Pages**
+```tsx
+Help Layout:
+- Sidebar navigation: Same as dashboard sidebar styling
+- Help categories: Collapsible sections
+- Search bar: `w-full h-10 px-4 rounded-md border border-input bg-background`
+- Article list: `space-y-2`
+- Article link: `block p-3 rounded-md hover:bg-accent transition-colors`
+- Article content: `prose prose-invert max-w-none`
+- Code blocks: `bg-card p-4 rounded-md border border-border`
+```
+
+### **Legal Pages**
+```tsx
+Legal Layout:
+- Same content page structure
+- Legal navigation: `sticky top-24 space-y-2`
+- Legal section: `space-y-6`
+- Section header: `text-xl font-semibold text-foreground border-b border-border pb-2`
+- Legal text: `prose prose-invert max-w-none`
+- Effective date: `text-sm text-muted-foreground mb-6`
+- Contact info: `bg-card rounded-lg p-4 border border-border`
+```
+
+---
+
+## **🔧 Shared Components**
+
+### **Call-to-Action Blocks**
+```tsx
+CTA Section:
+- Container: `bg-card rounded-lg p-8 border border-border text-center`
+- Title: `text-2xl font-bold text-foreground mb-4`
+- Description: `text-muted-foreground mb-6`
+- Button: `bg-primary text-primary-foreground px-8 py-3 rounded-md hover:bg-primary/90`
+- Secondary action: `text-primary hover:underline mt-4`
+```
+
+### **Newsletter Signup**
+```tsx
+Newsletter:
+- Container: `bg-card rounded-lg p-6 border border-border`
+- Title: `text-lg font-semibold text-foreground mb-2`
+- Description: `text-sm text-muted-foreground mb-4`
+- Input group: `flex gap-2`
+- Email input: `flex-1 h-10 px-3 rounded-md border border-input bg-background`
+- Submit button: `bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90`
+```
+
+### **Testimonials**
+```tsx
+Testimonial:
+- Container: `bg-card rounded-lg p-6 border border-border`
+- Quote: `text-foreground mb-4`
+- Author: `flex items-center gap-3`
+- Avatar: `w-10 h-10 rounded-full`
+- Author name: `text-sm font-semibold text-foreground`
+- Author role: `text-xs text-muted-foreground`
+```
+
+---
+
+## **🎯 Development Guidelines**
+
+### **Consistency Rules**
+1. **Same colors**: Use identical color variables as application
+2. **Same typography**: Use identical font system and sizing
+3. **Same components**: Buttons, forms, cards use same styling
+4. **Same interactions**: Hover states, transitions, focus rings
+
+### **Content Strategy**
+1. **Landing page**: Focus on crypto payments and dark UI benefits
+2. **Onboarding**: Guide users through admin setup process
+3. **Content pages**: Professional, comprehensive information
+4. **Help pages**: Clear, actionable guidance
+
+### **Conversion Optimization**
+1. **Clear CTAs**: Every page leads to registration
+2. **Benefit-focused**: Highlight unique features (crypto, dark UI)
+3. **Trust signals**: Professional design, clear pricing
+4. **User flow**: Smooth transition from marketing to application
+
+---
+
+## **📋 Implementation Priority**
+
+### **Phase 1: Core Marketing**
+1. Landing page (conversion critical)
+2. Pricing page (decision support)
+3. Registration flow (conversion funnel)
+
+### **Phase 2: Information**
+1. About page (trust building)
+2. Features page (detailed benefits)
+3. Help/FAQ (user support)
+
+### **Phase 3: Legal & Support**
+1. Privacy policy (compliance)
+2. Terms of service (legal)
+3. Contact/support (user assistance)
+
+---
+
+## **📋 Related Documentation**
+
+- **[Page Format Reference](Page%20Format%20Reference)** - Application UI/UX specifications and component styling
+- **[Pages Roadmap](Pages%20Roadmap)** - Complete page development sequence with priorities
+- **[Frontend Development Strategy](Frontend%20Development%20Strategy)** - Local development approach and mock data strategy
+- **[Executive Summary](Executive%20Summary)** - Project vision and key features overview
+- **[UI/UX Guidelines](UI/UX%20)** - Original design system and component specifications
+
+---
+
+*These templates ensure complete visual consistency between your marketing website and the application while optimizing for conversion and user experience.* 

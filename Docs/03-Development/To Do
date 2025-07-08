@@ -1,0 +1,54 @@
+COMPLETED:
+
+      (X) Remove Argentina Specific Copy and flag (unless it pertains to regional section layouts). We want Bit Agora to be region agnostic and appeal to a broad set of users.
+
+      (X) Remove "Overview section" in Admin Panel? Seems redundant. Move Recent activity to new page under Business Section (Place under Products).
+
+      (X) Make Parent Catgory font/logos slightly larger and/or more bold than their child pages (Business, Team, Payment, Settings) for clearer user parsing.
+
+      (X) PIN Login Not working?
+
+      (X) Add Business Name to Header
+
+
+ONBOARDING:
+
+-Navigation: Removed onboarding progress bars, added admin headers (I like the progress bar, bring it back?)
+
+POS:
+
+      () Low stock indicator
+      () 86'd Indicator 
+
+         We need to add the orange box around low stock products along with a small number indicating how many are left. 
+
+         We need to add a red box around 86'd products (out of inventory).
+
+         Make both well designed and elegant looking. Change no other aspects of the POS page UI/UX. 
+
+CHECKOUT/REGISTER:
+
+      (x) QR CODE Payments (multiple)
+
+SECURITY:
+
+      () Time lock APP Screen (PIN Pad Re-Login)
+
+         We need to create a settting in ADMIN/SETTINGS that allows the admin to set the time it takes for the Application to Lock. Take note that the same application will be used by multiple people in a matter of seconds or minutes (like a busy restaurant).
+
+
+SETTINGS:
+
+   APPLICATION:
+      
+   
+   USERS:
+
+      () Change ADMIN and Manager Pin to 6-digits (employee pins can remain      4-digits
+      (x) Role Based Permissions. Create confirmation pop-up on Admin and Manager level changes (Pin Confirmation)
+      () Wallet Address
+      ()
+
+   PRODUCTS:
+
+      () Product Upload from legacy POS system

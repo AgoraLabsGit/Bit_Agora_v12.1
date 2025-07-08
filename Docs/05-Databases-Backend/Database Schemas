@@ -1,0 +1,398 @@
+-- BitAgora POS Database Schema
+-- Last Updated: 2025-04-10
+-- Supports multi-tenant architecture with comprehensive feature set
+
+-- EXTENSION SETUP
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "ltree";
+
+-- ENUMERATION TYPES
+CREATE TYPE payment_provider_type AS ENUM (
+    'cash', 
+    'card', 
+    'usdt', 
+    'lightning_btc', 
+    'on_chain_btc', 
+    'mercado_pago', 
+    'stripe'
+);
+
+CREATE TYPE user_role AS ENUM (
+    'master_admin',
+    'admin', 
+    'manager', 
+    'employee'
+);
+
+CREATE TYPE transaction_status AS ENUM (
+    'pending', 
+    'completed', 
+    'refunded', 
+    'cancelled'
+);
+
+CREATE TYPE shift_status AS ENUM (
+    'active', 
+    'completed', 
+    'pending'
+);
+
+-- MERCHANTS TABLE
+CREATE TABLE merchants (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    address VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(50),
+    country VARCHAR(50),
+    postal_code VARCHAR(20),
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    currency VARCHAR(3) DEFAULT 'USD',
+    tax_id VARCHAR(50),
+    logo_url TEXT,
+    active BOOLEAN DEFAULT TRUE,
+    subscription_tier VARCHAR(50),
+    features_enabled JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- USERS TABLE
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    username VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    pin_hash TEXT,
+    role user_role NOT NULL,
+    
+    -- Personal Information
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    phone VARCHAR(20),
+    avatar_url TEXT,
+    location_id UUID, -- For manager/employee location assignment
+    is_master_admin BOOLEAN DEFAULT FALSE, -- Master Admin flag
+    
+    -- Work Tracking
+    current_shift_start TIMESTAMP WITH TIME ZONE,
+    last_clock_in TIMESTAMP WITH TIME ZONE,
+    last_clock_out TIMESTAMP WITH TIME ZONE,
+    total_hours_worked NUMERIC(10,2) DEFAULT 0,
+    
+    -- Wallet Information for Payroll
+    payroll_wallet_type payment_provider_type, 
+    payroll_wallet_address TEXT,
+    
+    -- Authentication and Access
+    last_login TIMESTAMP WITH TIME ZONE,
+    login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
+    
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(merchant_id, username)
+);
+
+-- PAYMENT PROVIDERS TABLE
+CREATE TABLE payment_providers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    type payment_provider_type NOT NULL,
+    supported_currencies TEXT[],
+    api_documentation_url TEXT,
+    configuration_schema JSONB,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- MERCHANT WALLETS TABLE
+CREATE TABLE merchant_wallets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    provider_id UUID REFERENCES payment_providers(id),
+    
+    wallet_type payment_provider_type NOT NULL,
+    label VARCHAR(100),
+    
+    address TEXT NOT NULL,
+    public_key TEXT,
+    private_key_encrypted TEXT,
+    
+    is_default BOOLEAN DEFAULT FALSE,
+    active BOOLEAN DEFAULT TRUE,
+    
+    country_restrictions TEXT[],
+    compliance_status VARCHAR(50),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CATEGORIES TABLE
+CREATE TABLE categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    parent_category_id UUID REFERENCES categories(id),
+    
+    color VARCHAR(7),
+    icon VARCHAR(50),
+    sort_order INTEGER DEFAULT 0,
+    
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(merchant_id, name)
+);
+
+-- PRODUCTS TABLE
+CREATE TABLE products (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    sku VARCHAR(50) UNIQUE,
+    barcode VARCHAR(50),
+    
+    price DECIMAL(10, 2) NOT NULL,
+    cost_price DECIMAL(10, 2),
+    tax_rate DECIMAL(5, 2),
+    
+    stock_quantity INTEGER DEFAULT 0,
+    low_stock_threshold INTEGER,
+    track_inventory BOOLEAN DEFAULT TRUE,
+    
+    image_url TEXT,
+    weight DECIMAL(8, 2),
+    dimensions JSONB,
+    
+    category_path LTREE,
+    primary_category_id UUID REFERENCES categories(id),
+    secondary_categories UUID[],
+    
+    tags TEXT[],
+    product_type VARCHAR(50),
+    
+    active BOOLEAN DEFAULT TRUE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CUSTOMERS TABLE
+CREATE TABLE customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    
+    wallet_addresses JSONB, 
+    
+    total_purchases DECIMAL(10,2) DEFAULT 0,
+    loyalty_points INTEGER DEFAULT 0,
+    loyalty_tier VARCHAR(50),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- SHIFTS TABLE
+CREATE TABLE shifts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    clock_in TIMESTAMP WITH TIME ZONE NOT NULL,
+    clock_out TIMESTAMP WITH TIME ZONE,
+    
+    break_start TIMESTAMP WITH TIME ZONE,
+    break_end TIMESTAMP WITH TIME ZONE,
+    total_break_time INTERVAL DEFAULT '00:00:00',
+    
+    total_hours NUMERIC(10,2),
+    hourly_rate DECIMAL(10,2),
+    total_earnings DECIMAL(10,2),
+    
+    status shift_status DEFAULT 'pending',
+    notes TEXT,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TRANSACTIONS TABLE
+CREATE TABLE transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+    
+    reference_number VARCHAR(50) UNIQUE,
+    total DECIMAL(10, 2) NOT NULL,
+    subtotal DECIMAL(10, 2) NOT NULL,
+    tax_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    discount_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    
+    payment_method payment_provider_type NOT NULL,
+    payment_status transaction_status DEFAULT 'pending',
+    payment_details JSONB,
+    
+    notes TEXT,
+    metadata JSONB,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TRANSACTION ITEMS TABLE
+CREATE TABLE transaction_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    transaction_id UUID REFERENCES transactions(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    product_name VARCHAR(255) NOT NULL, -- Store product name at time of sale
+    product_sku VARCHAR(50),
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    tax_rate DECIMAL(5, 2),
+    tax_amount DECIMAL(10, 2) DEFAULT 0,
+    discount_amount DECIMAL(10, 2) DEFAULT 0,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- AUDIT LOGS TABLE
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    action VARCHAR(100) NOT NULL, -- 'create', 'update', 'delete', 'login', 'logout'
+    table_name VARCHAR(100), -- Table affected by the action
+    record_id UUID, -- ID of the affected record
+    
+    old_values JSONB, -- Previous values (for updates/deletes)
+    new_values JSONB, -- New values (for creates/updates)
+    
+    ip_address INET,
+    user_agent TEXT,
+    session_id VARCHAR(255),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- SUBSCRIPTIONS TABLE
+CREATE TABLE subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    tier VARCHAR(50) NOT NULL, -- 'free', 'basic', 'pro'
+    status VARCHAR(50) DEFAULT 'active', -- 'active', 'cancelled', 'expired'
+    
+    user_limits JSONB, -- JSON with admin, manager, employee limits
+    features_enabled JSONB, -- Available features for this tier
+    
+    billing_cycle VARCHAR(20), -- 'monthly', 'yearly'
+    amount DECIMAL(10, 2),
+    currency VARCHAR(3) DEFAULT 'USD',
+    
+    current_period_start TIMESTAMP WITH TIME ZONE,
+    current_period_end TIMESTAMP WITH TIME ZONE,
+    trial_end TIMESTAMP WITH TIME ZONE,
+    
+    paddle_subscription_id VARCHAR(255),
+    paddle_customer_id VARCHAR(255),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- LOYALTY RULES TABLE
+CREATE TABLE loyalty_rules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    
+    points_per_dollar DECIMAL(5,2),
+    minimum_purchase_amount DECIMAL(10,2),
+    
+    tier_name VARCHAR(50),
+    tier_threshold DECIMAL(10,2),
+    
+    redemption_value DECIMAL(10,2),
+    
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- PERFORMANCE INDEXES
+CREATE INDEX idx_merchant_name ON merchants(name);
+CREATE INDEX idx_user_merchant ON users(merchant_id);
+CREATE INDEX idx_user_role ON users(role);
+
+CREATE INDEX idx_shifts_user ON shifts(user_id);
+CREATE INDEX idx_shifts_merchant ON shifts(merchant_id);
+CREATE INDEX idx_shifts_date ON shifts(clock_in, clock_out);
+
+CREATE INDEX idx_customer_merchant ON customers(merchant_id);
+CREATE INDEX idx_customer_loyalty ON customers(loyalty_points, loyalty_tier);
+
+CREATE INDEX idx_transaction_merchant ON transactions(merchant_id);
+CREATE INDEX idx_transaction_customer ON transactions(customer_id);
+CREATE INDEX idx_transaction_date ON transactions(created_at);
+CREATE INDEX idx_transaction_status ON transactions(status);
+
+CREATE INDEX idx_product_merchant ON products(merchant_id);
+CREATE INDEX idx_product_category ON products(category_id);
+CREATE INDEX idx_product_status ON products(active, deleted_at);
+
+CREATE INDEX idx_loyalty_rules_merchant ON loyalty_rules(merchant_id);
+
+-- Indexes for new tables
+CREATE INDEX idx_transaction_items_transaction_id ON transaction_items(transaction_id);
+CREATE INDEX idx_transaction_items_product_id ON transaction_items(product_id);
+CREATE INDEX idx_transaction_items_merchant_id ON transaction_items(merchant_id);
+
+CREATE INDEX idx_audit_logs_merchant_id ON audit_logs(merchant_id);
+CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_audit_logs_action ON audit_logs(action);
+CREATE INDEX idx_audit_logs_table_name ON audit_logs(table_name);
+
+CREATE INDEX idx_subscriptions_merchant_id ON subscriptions(merchant_id);
+CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX idx_subscriptions_tier ON subscriptions(tier);
+
+-- END OF SCHEMA
+
+---
+
+## **📋 Related Documentation**
+
+- **[Executive Summary](Executive%20Summary)** - Project vision and key features overview
+- **[Project Context](Project%20Context)** - Technical requirements and API implementation details
+- **[Frontend Development Strategy](Frontend%20Development%20Strategy)** - Local development approach and mock data strategy
+- **[Pages Roadmap](Pages%20Roadmap)** - Complete page development sequence with admin-first flow
+- **[UI/UX Guidelines](UI/UX%20)** - Design system and component styling specifications
+- **[Screenshots/](Screenshots/)** - Visual references from previous versions for UI consistency

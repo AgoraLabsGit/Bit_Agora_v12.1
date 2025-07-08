@@ -1,0 +1,620 @@
+# BitAgora POS - Page Format Reference
+## Complete UI/UX Development Guide
+
+### **Overview**
+This document provides detailed page format specifications based on actual screenshots and existing styling documentation. Use this as the definitive reference for all UI/UX implementation to ensure consistency across the application.
+
+---
+
+## **🎨 Core Design System**
+
+### **Color Palette (Confirmed from Screenshots)**
+```tsx
+const colors = {
+  background: '#0f172a',      // Primary dark background
+  foreground: '#f8fafc',      // Light text color
+  primary: '#60a5fa',         // Blue accent (buttons, links, active states)
+  secondary: '#334155',       // Secondary elements
+  destructive: '#dc2626',     // Red for destructive actions (Clear button)
+  muted: '#64748b',          // Muted text and borders
+  card: '#1e293b',           // Card backgrounds (slightly lighter than main bg)
+  border: '#334155',         // Borders and dividers
+  input: '#0f172a',          // Input field backgrounds
+  accent: '#1e40af',         // Subtle accent for hover states
+}
+```
+
+### **Typography System**
+- **Logo**: `text-3xl font-light tracking-tight` ("Bit") + `font-semibold` ("Agora")
+- **Page Titles**: `text-2xl font-semibold text-foreground`
+- **Section Headers**: `text-lg font-semibold text-foreground`
+- **Body Text**: `text-sm text-foreground`
+- **Muted Text**: `text-sm text-muted-foreground`
+- **Button Text**: `text-sm font-medium`
+- **Input Text**: `text-sm text-foreground`
+
+### **Spacing System**
+- **Card Padding**: `p-6` (standard), `p-8` (large cards)
+- **Content Spacing**: `space-y-4` (standard), `space-y-6` (sections)
+- **Form Spacing**: `space-y-4` between fields
+- **Grid Gaps**: `gap-4` (standard), `gap-6` (large grids)
+
+---
+
+## **📋 Page Format Templates**
+
+### **1. Authentication Pages**
+
+#### **Registration Form (Multi-Step)**
+```tsx
+Layout Structure:
+- Full-screen: `min-h-screen bg-background`
+- Centered container: `flex items-center justify-center p-8`
+- Card container: `w-full max-w-md bg-card rounded-lg shadow-lg`
+- Card padding: `p-6`
+
+Header Section:
+- Logo area: `space-y-2 pb-6 text-center`
+- Logo: `<Zap className="h-8 w-8 text-primary mx-auto" />`
+- Title: `text-3xl font-light tracking-tight`
+- Subtitle: `text-sm text-muted-foreground`
+
+Progress Indicator:
+- Container: `flex items-center justify-between mb-6`
+- Step circles: `w-8 h-8 rounded-full flex items-center justify-center`
+- Active step: `bg-primary text-primary-foreground`
+- Inactive step: `border border-border text-muted-foreground`
+- Progress line: `flex-1 h-px bg-border mx-4`
+
+Form Fields:
+- Label: `text-sm font-medium mb-2`
+- Input: `w-full h-10 px-3 rounded-md border border-input bg-background`
+- Focus: `focus:outline-none focus:ring-2 focus:ring-primary`
+- Placeholder: `text-muted-foreground`
+- Spacing: `space-y-4`
+
+Action Buttons:
+- Primary: `w-full h-10 bg-primary text-primary-foreground rounded-md`
+- Secondary link: `text-primary hover:underline text-center mt-4`
+```
+
+#### **Admin Login Form**
+```tsx
+Layout Structure:
+- Full-screen: `min-h-screen bg-background`
+- Centered card: `w-full max-w-md bg-card rounded-lg shadow-lg p-6`
+
+Logo Section:
+- Logo: `<Zap className="h-8 w-8 text-primary mx-auto mb-2" />`
+- Title: `text-2xl font-semibold text-center mb-1`
+- Subtitle: `text-sm text-muted-foreground text-center mb-6`
+
+Mode Toggle:
+- Container: `grid grid-cols-2 gap-2 mb-6`
+- Active button: `bg-primary text-primary-foreground`
+- Inactive button: `bg-muted text-muted-foreground`
+- Button height: `h-10`
+
+Form Layout:
+- Field spacing: `space-y-4`
+- Labels: `text-sm font-medium mb-2`
+- Inputs: `w-full h-10 px-3 rounded-md border border-input bg-background`
+- Forgot password: `text-primary hover:underline text-sm text-right`
+
+Sign In Button:
+- Style: `w-full h-10 bg-primary text-primary-foreground rounded-md mt-6`
+- Disabled state: `opacity-50 cursor-not-allowed`
+```
+
+#### **PIN Pad Interface**
+```tsx
+Layout Structure:
+- Full-screen: `min-h-screen bg-background`
+- Centered card: `w-full max-w-md bg-card rounded-lg shadow-lg p-6`
+
+Logo & Toggle:
+- Logo section: Same as Admin Login
+- Mode toggle: `grid grid-cols-2 gap-2 mb-6`
+- POS Login active: `bg-primary text-primary-foreground`
+- Admin Login inactive: `bg-muted text-muted-foreground`
+
+PIN Display:
+- Container: `mb-6`
+- Input field: `w-full h-16 text-center text-2xl tracking-widest bg-background border border-input rounded-md`
+- PIN dots: `type="password"` to show dots
+- Visual feedback: 4 squares showing filled/empty state
+
+PIN Pad Grid:
+- Layout: `grid grid-cols-3 gap-4 mb-6`
+- Button size: `h-16 text-2xl font-semibold`
+- Number buttons: `bg-background border border-input hover:bg-accent`
+- Backspace button: `bg-background border border-input`
+- Clear button: `bg-destructive text-destructive-foreground`
+- Button 0: `col-span-1` (center position)
+
+Login Button:
+- Style: `w-full h-10 bg-muted text-muted-foreground rounded-md`
+- Active state: `bg-primary text-primary-foreground` (when PIN has 4 digits)
+```
+
+### **2. Dashboard & Admin Pages**
+
+#### **Sidebar Navigation**
+```tsx
+Layout Structure:
+- Container: `w-64 h-screen bg-card border-r border-border`
+- Collapsed: `w-16` (icon only)
+- Transition: `transition-all duration-300`
+
+Header:
+- Padding: `p-4`
+- Logo area: `flex items-center gap-2`
+- Collapse button: `ml-auto`
+
+Navigation Sections:
+- Section header: `px-3 py-2 text-sm font-semibold text-muted-foreground`
+- Collapsible: `space-y-1`
+- Chevron icon: `h-4 w-4 transition-transform`
+
+Navigation Items:
+- Container: `px-3 py-2 rounded-md transition-colors`
+- Icon: `h-5 w-5 mr-3`
+- Text: `text-sm font-medium`
+- Hover: `hover:bg-accent hover:text-accent-foreground`
+- Active: `bg-accent text-accent-foreground`
+- Active indicator: `bg-primary` (blue highlight)
+
+Grouped Sections:
+1. Overview (Grid icon)
+   - Daily Stats (active with blue background)
+   - Recent Activity
+2. Team (Users icon)
+   - Employee Directory
+   - Timesheet & Shifts
+   - Payroll
+3. Business (Building icon)
+   - Products
+   - Analytics
+   - Customers (CRM)
+   - Reports
+   - Create Invoice
+4. Payment (Dollar icon)
+   - Wallet Management
+   - Payment Methods
+   - Discount Management
+5. Settings (Gear icon)
+   - Business Profile
+   - Notifications
+   - Integration Settings
+   - System Settings
+```
+
+### **3. POS Interface**
+
+#### **Main POS Layout**
+```tsx
+Layout Structure:
+- Full-screen: `h-screen bg-background`
+- Header: `h-16 bg-card border-b border-border px-4 flex items-center justify-between`
+- Main content: `flex-1 flex`
+- Left panel: `flex-1 p-4` (products)
+- Right panel: `w-80 bg-card border-l border-border p-4` (cart)
+
+Header Elements:
+- Logo: `text-xl font-semibold`
+- Navigation: `flex gap-4`
+- Nav items: `px-3 py-2 rounded-md text-sm font-medium`
+- Active nav: `bg-primary text-primary-foreground`
+
+Product Grid:
+- Category tabs: `flex gap-2 mb-4`
+- Tab button: `px-4 py-2 rounded-md text-sm font-medium`
+- Active tab: `bg-primary text-primary-foreground`
+- Inactive tab: `bg-muted text-muted-foreground`
+
+- Product grid: `grid grid-cols-3 gap-4`
+- Product card: `bg-card rounded-lg p-4 border border-border hover:shadow-md`
+- Product image: `w-12 h-12 mx-auto mb-2`
+- Product name: `text-sm font-medium text-center`
+- Product price: `text-lg font-semibold text-center text-primary`
+
+Cart Section:
+- Cart header: `text-lg font-semibold mb-4`
+- Cart items: `space-y-3`
+- Cart item: `flex items-center justify-between`
+- Item details: `flex-1`
+- Item name: `text-sm font-medium`
+- Item price: `text-sm text-muted-foreground`
+- Quantity controls: `flex items-center gap-2`
+- Quantity button: `w-8 h-8 rounded-md border border-input`
+- Remove button: `text-destructive hover:bg-destructive/10`
+
+Cart Total:
+- Container: `border-t border-border pt-4 mt-4`
+- Total label: `text-lg font-semibold`
+- Total amount: `text-2xl font-bold text-primary`
+- Payment button: `w-full h-12 bg-primary text-primary-foreground rounded-md mt-4`
+```
+
+---
+
+## **🔧 Component Specifications**
+
+### **Form Components**
+```tsx
+Input Field:
+- Base: `w-full h-10 px-3 rounded-md border border-input bg-background`
+- Focus: `focus:outline-none focus:ring-2 focus:ring-primary`
+- Error: `border-destructive focus:ring-destructive`
+- Disabled: `opacity-50 cursor-not-allowed`
+
+Label:
+- Style: `text-sm font-medium text-foreground mb-1`
+
+Button Variants:
+- Primary: `bg-primary text-primary-foreground hover:bg-primary/90`
+- Secondary: `bg-secondary text-secondary-foreground hover:bg-secondary/80`
+- Outline: `border border-input bg-background hover:bg-accent`
+- Destructive: `bg-destructive text-destructive-foreground hover:bg-destructive/90`
+- Ghost: `hover:bg-accent hover:text-accent-foreground`
+
+Button Sizes:
+- Small: `h-8 px-3 text-xs`
+- Default: `h-10 px-4 text-sm`
+- Large: `h-12 px-6 text-base`
+```
+
+### **Interactive Elements**
+```tsx
+Hover Effects:
+- Cards: `hover:shadow-md transition-shadow`
+- Buttons: `hover:bg-accent transition-colors`
+- Links: `hover:underline`
+
+Focus States:
+- All interactive: `focus:outline-none focus:ring-2 focus:ring-primary`
+- Buttons: `focus:ring-offset-2`
+
+Active States:
+- Navigation: `bg-accent text-accent-foreground`
+- Buttons: `active:scale-95 transition-transform`
+```
+
+### **Layout Patterns**
+```tsx
+Page Container:
+- Full page: `min-h-screen bg-background`
+- Content area: `max-w-6xl mx-auto p-8`
+- Sidebar layout: `flex h-screen`
+
+Card Patterns:
+- Standard: `bg-card rounded-lg shadow-md p-6`
+- Hover: `hover:shadow-lg transition-shadow`
+- Border: `border border-border`
+
+Grid Systems:
+- 2 columns: `grid grid-cols-2 gap-4`
+- 3 columns: `grid grid-cols-3 gap-4`
+- 4 columns: `grid grid-cols-4 gap-4`
+- Responsive: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`
+```
+
+---
+
+## **📱 Responsive Breakpoints**
+
+### **Mobile First Approach**
+```tsx
+Breakpoints:
+- Mobile: `default` (< 640px)
+- Tablet: `md:` (≥ 768px)
+- Desktop: `lg:` (≥ 1024px)
+- Large: `xl:` (≥ 1280px)
+
+Common Patterns:
+- Grid: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- Spacing: `p-4 md:p-6 lg:p-8`
+- Text: `text-sm md:text-base lg:text-lg`
+- Sidebar: `hidden md:block` (mobile collapsed)
+```
+
+---
+
+## **🚀 Real API Integration Patterns**
+
+### **Loading States**
+```tsx
+// API Data Loading Pattern
+const [isLoading, setIsLoading] = useState(true)
+const [data, setData] = useState(null)
+const [error, setError] = useState(null)
+
+// Loading UI
+{isLoading && (
+  <div className="flex flex-col items-center justify-center py-12">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+    <p className="text-muted-foreground">Loading data...</p>
+  </div>
+)}
+```
+
+### **Error States**
+```tsx
+// Error Display Pattern
+{error && (
+  <div className="bg-destructive/10 border border-destructive rounded-lg p-4">
+    <div className="flex items-center gap-2 text-destructive">
+      <AlertCircle className="h-5 w-5" />
+      <p className="font-medium">Error loading data</p>
+    </div>
+    <p className="text-sm text-muted-foreground mt-1">{error}</p>
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={retryFunction}
+      className="mt-3"
+    >
+      Try Again
+    </Button>
+  </div>
+)}
+```
+
+### **Empty States**
+```tsx
+// Empty State Pattern
+{data?.length === 0 && (
+  <div className="text-center py-12">
+    <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+      <Package className="h-12 w-12 text-muted-foreground" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground mb-2">No products found</h3>
+    <p className="text-muted-foreground mb-4">Get started by adding your first product</p>
+    <Button>Add Product</Button>
+  </div>
+)}
+```
+
+### **Real-Time Data Updates**
+```tsx
+// Real-Time Update Pattern (30-second refresh)
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/endpoint')
+      const result = await response.json()
+      if (result.success) {
+        setData(result.data)
+      }
+    } catch (error) {
+      setError(error.message)
+    }
+  }
+
+  fetchData()
+  const interval = setInterval(fetchData, 30000) // 30-second refresh
+  
+  return () => clearInterval(interval)
+}, [])
+```
+
+---
+
+## **🔧 Production-Ready Component Patterns**
+
+### **Environment-Gated Features**
+```tsx
+// Development-Only Features
+const isDevelopment = process.env.NODE_ENV === 'development'
+
+return (
+  <div>
+    {/* Always visible content */}
+    <MainContent />
+    
+    {/* Development-only debug panel */}
+    {isDevelopment && (
+      <div className="fixed bottom-4 right-4 bg-card border border-border rounded-lg p-4">
+        <p className="text-xs text-muted-foreground mb-2">Development Mode</p>
+        <DebugPanel />
+      </div>
+    )}
+  </div>
+)
+```
+
+### **Smart Defaults Based on Context**
+```tsx
+// Business Type Smart Defaults
+const getSmartDefaults = (businessType: string) => {
+  const defaults = {
+    "restaurant": {
+      hours: "11:00-22:00",
+      features: ["reservations", "delivery", "loyalty"],
+      returnPolicy: "0"
+    },
+    "retail": {
+      hours: "09:00-18:00", 
+      features: ["loyalty", "giftCards"],
+      returnPolicy: "30"
+    },
+    "service": {
+      hours: "08:00-17:00",
+      features: ["appointments"],
+      returnPolicy: "7"
+    }
+  }
+  return defaults[businessType] || defaults["retail"]
+}
+```
+
+### **Dynamic Configuration UI**
+```tsx
+// Configuration-Driven Components
+const PaymentMethodSelector = ({ enabledMethods, onToggle }) => (
+  <div className="space-y-4">
+    {paymentMethods.map(method => (
+      <div key={method.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+        <div>
+          <h3 className="font-medium">{method.name}</h3>
+          <p className="text-sm text-muted-foreground">{method.description}</p>
+        </div>
+        <Switch 
+          checked={enabledMethods.includes(method.id)}
+          onCheckedChange={(checked) => onToggle(method.id, checked)}
+        />
+      </div>
+    ))}
+  </div>
+)
+```
+
+---
+
+## **📊 Data Integration Guidelines**
+
+### **API-First Component Pattern**
+```tsx
+// Standard Data Component Pattern
+const ProductList = () => {
+  const [products, setProducts] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch('/api/products')
+        const result = await response.json()
+        
+        if (!result.success) {
+          throw new Error(result.error)
+        }
+        
+        setProducts(result.data)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  if (isLoading) return <LoadingState />
+  if (error) return <ErrorState error={error} onRetry={fetchProducts} />
+  if (products.length === 0) return <EmptyState />
+
+  return <ProductGrid products={products} />
+}
+```
+
+### **Form Validation Patterns**
+```tsx
+// Zod Schema Integration
+const ProductSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  price: z.number().min(0, 'Price must be positive'),
+  category: z.string().min(1, 'Category is required')
+})
+
+// Form Component with Validation
+const ProductForm = ({ onSubmit }) => {
+  const [errors, setErrors] = useState({})
+  
+  const handleSubmit = async (formData) => {
+    try {
+      const validatedData = ProductSchema.parse(formData)
+      await onSubmit(validatedData)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = {}
+        error.errors.forEach(err => {
+          fieldErrors[err.path[0]] = err.message
+        })
+        setErrors(fieldErrors)
+      }
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Input 
+        error={errors.name}
+        helperText={errors.name}
+      />
+    </form>
+  )
+}
+```
+
+---
+
+## **🎯 Development Guidelines**
+
+### **Component Development Order**
+1. **Base Components**: Button, Input, Card, Label
+2. **Layout Components**: Sidebar, Header, Container
+3. **Form Components**: LoginForm, RegisterForm, PinPad
+4. **Data Components**: ProductList, Dashboard, Analytics
+5. **Business Components**: POS, Cart, Checkout
+
+### **Data Handling Protocol Compliance**
+**MANDATORY**: All new components must follow the 7-step protocol:
+1. **API-First Design**: Create endpoint before component
+2. **Mock Database Integration**: Use mockStorage with proper keys
+3. **TypeScript Interface**: Define data structure with proper typing
+4. **Zod Validation**: Create validation schema for runtime checking
+5. **Multi-tenant Isolation**: Always use merchantId for data separation
+6. **Production Ready**: Use environment toggle for future database migration
+7. **Standardized Response**: Return ApiResponse<T> format with success/error handling
+
+### **Styling Consistency Rules**
+1. **Always use design system colors** - No hardcoded hex values
+2. **Consistent spacing** - Use space-y-4, gap-4, p-6 patterns
+3. **Uniform border radius** - Use rounded-md for most elements
+4. **Consistent hover states** - All interactive elements need hover feedback
+5. **Focus accessibility** - All interactive elements need focus rings
+6. **Dark theme only** - No light theme variants needed
+7. **Loading states required** - All API components need loading indicators
+8. **Error handling mandatory** - All API components need error states
+
+### **Testing Checklist**
+- [ ] All hover states work correctly
+- [ ] Focus states visible and accessible
+- [ ] Responsive design works on all breakpoints
+- [ ] Form validation displays correctly
+- [ ] Loading states implemented
+- [ ] Error states handled gracefully
+- [ ] Empty states designed and functional
+- [ ] Real-time updates working (where applicable)
+- [ ] API integration following protocol
+- [ ] TypeScript interfaces defined
+- [ ] Zod validation schemas created
+- [ ] Environment gating working correctly
+
+---
+
+## **🔗 Implementation Reference**
+
+### **Key Pages to Implement**
+1. `/` - Landing page (marketing) - See [Website Page Templates](Website%20Page%20Templates#template-1-landing-page)
+2. `/register` - Admin registration (2-step form)
+3. `/auth/admin-login` - Admin login (email/password)
+4. `/auth/login` - PIN pad login (employee)
+5. `/dashboard` - Admin dashboard (sidebar navigation)
+6. `/pos` - POS interface (product grid + cart)
+
+### **Priority Components**
+1. **AuthCard** - Base authentication layout
+2. **StepIndicator** - Multi-step form progress
+3. **PinPad** - 3×4 number pad component
+4. **Sidebar** - Collapsible navigation
+5. **ProductGrid** - POS product display
+6. **Cart** - Shopping cart component
+
+---
+
+*This document serves as the definitive reference for all UI/UX implementation. Follow these specifications exactly to ensure consistency across the application.* 

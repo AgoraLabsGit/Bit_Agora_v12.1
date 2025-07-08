@@ -1,0 +1,30 @@
+
+
+### 🔐 **User Levels & Permissions**
+
+| **Role** | **PIN** | **Name** | **Permissions** |
+|----------|---------|----------|-----------------|
+| **👑 Admin** | `0000` | Alex Admin | **ALL PERMISSIONS** - Can process refunds, modify products, manage employees, view reports, modify settings, access admin |
+| **📊 Manager** | `1234` | John Manager | **LIMITED ADMIN** - Can process refunds, modify products, view reports, access admin. **Cannot** manage employees or settings |
+| **💼 Employee** | `5678` | Sarah Johnson | **POS ONLY** - No admin permissions, limited to POS operations |
+| **💼 Employee** | `9999` | Mike Smith | **POS ONLY** - No admin permissions, limited to POS operations |
+
+
+**Test with different PIN codes:**
+
+1. **Admin Access (PIN: `0000`)**:
+   - ✅ Can access ALL features
+   - ✅ Can process refunds
+   - ✅ Can modify all filters
+   - ✅ Full admin control
+
+2. **Manager Access (PIN: `1234`)**:
+   - ✅ Can process refunds
+   - ✅ Can view/filter transactions
+   - ❌ Cannot manage employees
+   - ❌ Cannot modify system settings
+
+3. **Employee Access (PIN: `5678` or `9999`)**:
+   - ❌ Cannot access admin transactions page
+   - ❌ Blocked from all admin functions
+   - ✅ Can use POS interface only

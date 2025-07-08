@@ -1,0 +1,228 @@
+## Project Context
+
+You are developing the frontend for BitAgora POS, a comprehensive point-of-sale and business management system. The project already has:
+
+- Established dark theme with blue accents (#60a5fa primary, #0f172a background)
+- Existing component structure with Shadcn/UI
+- Authentication flow (PIN-based for POS, email/password for admin)
+- Dashboard layout with sidebar navigation
+
+## Objective
+
+Develop a production-ready frontend that can seamlessly integrate with a separately developed backend. Focus on creating a complete, functional UI that uses mock data and APIs, with clear contracts for future backend integration.
+
+## Technology Stack
+
+- **Framework**: Next.js 15.x with App Router
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS with existing dark theme configuration
+- **Components**: Shadcn/UI + Radix UI primitives
+- **State Management**: React Context API + Server Actions pattern
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React
+- **Charts**: Recharts for analytics
+
+## Key Requirements
+
+### 1. API Abstraction Layer
+
+Create a service layer in `/lib/api/` with:
+
+```tsx
+// /lib/api/types.ts - Define all API interfaces
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+// /lib/api/client.ts - API client with mock/real toggle
+export class ApiClient {
+  private baseUrl: string;
+  private useMock: boolean;
+
+  async get<T>(endpoint: string): Promise<ApiResponse<T>>
+  async post<T>(endpoint: string, data: any): Promise<ApiResponse<T>>
+  // ... other methods
+}
+
+```
+
+### 2. Mock Data Structure
+
+Based on existing schemas, create comprehensive mock data:
+
+- Users (admin, manager, employee roles)
+- Products (organized by categories: Drinks, Food, Desserts, etc.)
+- Transactions with realistic payment methods
+- Merchants with business information
+- Analytics data for dashboard charts
+
+### 3. Component Architecture
+
+Follow existing patterns:
+
+- Use established Tailwind classes (bg-background-card, text-foreground, etc.)
+- Maintain dark theme consistency
+- Create reusable form components with validation
+- Implement responsive design for all screen sizes
+
+### 4. Authentication Flow
+
+Implement both authentication paths:
+
+- PIN-based login for POS users (4-digit PIN)
+- Email/password for admin users
+- Role-based route protection
+- Session management with Next.js cookies
+
+### 5. Core Features to Implement
+
+### POS Interface
+
+- Product grid with category filtering
+- Shopping cart management
+- Payment method selection (Cash, Bitcoin, Lightning, USDT)
+- QR code display for crypto payments
+- Receipt generation
+- Transaction completion flow
+
+### Dashboard
+
+- Sales analytics with charts
+- Recent transactions list
+- Top products display
+- User management interface
+- Settings and configuration
+
+### Business Management
+
+- Product CRUD operations
+- Employee management
+- Customer management
+- Inventory tracking
+- Report generation
+
+### 6. API Documentation
+
+For each feature, document:
+
+```tsx
+// Example API contract
+interface ProductAPI {
+  // GET /api/products?category={category}&page={page}
+  getProducts(filters: ProductFilters): Promise<ApiResponse<Product[]>>
+
+  // POST /api/products
+  createProduct(product: CreateProductData): Promise<ApiResponse<Product>>
+
+  // PUT /api/products/{id}
+  updateProduct(id: string, data: UpdateProductData): Promise<ApiResponse<Product>>
+
+  // DELETE /api/products/{id}
+  deleteProduct(id: string): Promise<ApiResponse<void>>
+}
+
+```
+
+### 7. State Management
+
+Use React Context for:
+
+- User authentication state
+- Shopping cart state
+- Application settings
+- Toast notifications
+
+### 8. Error Handling
+
+Implement comprehensive error handling:
+
+- API error boundaries
+- Form validation errors
+- Network connectivity issues
+- User-friendly error messages
+
+### 9. Performance Optimizations
+
+- Lazy loading for dashboard components
+- Image optimization for product photos
+- Debounced search functionality
+- Pagination for large datasets
+
+### 10. Testing Considerations
+
+- Component unit tests with Jest/React Testing Library
+- Integration tests for user flows
+- Mock API responses for testing
+- Accessibility testing
+
+## Integration Preparation
+
+### Environment Variables Structure
+
+```
+# Frontend Configuration
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# Mock Data Toggle
+NEXT_PUBLIC_USE_MOCK_API=true
+
+# Future Backend Integration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+PADDLE_CLIENT_TOKEN=your_paddle_token
+
+```
+
+### Backend Integration Checklist
+
+Create documentation including:
+
+- [ ]  API endpoint specifications
+- [ ]  Authentication flow requirements
+- [ ]  Database schema expectations
+- [ ]  Payment webhook requirements
+- [ ]  Error response formats
+- [ ]  File upload specifications
+
+## Code Quality Standards
+
+- Use TypeScript strict mode
+- Implement proper error boundaries
+- Follow Next.js 15 best practices
+- Maintain consistent naming conventions
+- Add JSDoc comments for complex functions
+- Use semantic HTML for accessibility
+
+## Deliverables
+
+A complete, production-ready frontend that can seamlessly integrate with a separately developed backend, including comprehensive documentation and integration guides.
+
+---
+
+## **📋 Related Documentation**
+
+- **[Executive Summary](Executive%20Summary)** - Project vision and key features
+- **[Frontend Development Strategy](Frontend%20Development%20Strategy)** - Local development approach and mock data strategy
+- **[Pages Roadmap](Pages%20Roadmap)** - Complete page development sequence with admin-first flow
+- **[Database Schemas](Database%20Schemas)** - Data structure and API contracts
+- **[UI/UX Guidelines](UI/UX%20)** - Design system, color palette, and component styling
+- **[Screenshots/](Screenshots/)** - Visual references from previous versions
+
+1. Complete frontend application with mock data
+2. API specification documentation
+3. Component documentation with Storybook
+4. Integration guide for backend developer
+5. Deployment guide for Vercel
+
+## Success Criteria
+
+- All UI components function with mock data
+- Responsive design works across devices
+- Authentication flows are complete
+- Payment UIs are ready for integration
+- Dashboard displays all required analytics
+- Code is production-ready and well-documented

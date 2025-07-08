@@ -1,0 +1,361 @@
+// QR Payment Gateway for dynamic QR code generation
+// Supports Stripe and Mercado Pago for USA and Latin America markets
+
+import QRCode from 'qrcode'
+
+export type PaymentGateway = 'stripe' | 'mercadopago'
+export type PaymentStatus = 'pending' | 'waiting' | 'confirming' | 'completed' | 'failed' | 'expired'
+
+export interface TransactionMetadata {
+  transactionId: string
+  merchantId: string
+  items: Array<{
+    id: string
+    name: string
+    quantity: number
+    price: number
+  }>
+  customerInfo?: {
+    email?: string
+    name?: string
+  }
+}
+
+export interface QRPaymentResult {
+  qrCode: string // Base64 encoded QR code image
+  paymentUrl: string // The URL encoded in the QR code
+  paymentId: string // Gateway-specific payment ID
+  expiresAt: Date // When the QR code expires
+  status: PaymentStatus
+  gateway: PaymentGateway
+}
+
+export interface PaymentStatusUpdate {
+  paymentId: string
+  status: PaymentStatus
+  gateway: PaymentGateway
+  timestamp: Date
+  amount?: number
+  currency?: string
+  transactionId?: string
+}
+
+export class QRPaymentGateway {
+  private static instance: QRPaymentGateway
+  private activePayments: Map<string, QRPaymentResult> = new Map()
+  private statusListeners: Map<string, (update: PaymentStatusUpdate) => void> = new Map()
+
+  static getInstance(): QRPaymentGateway {
+    if (!QRPaymentGateway.instance) {
+      QRPaymentGateway.instance = new QRPaymentGateway()
+    }
+    return QRPaymentGateway.instance
+  }
+
+  /**
+   * Generate dynamic QR code for payment
+   */
+  async generateQR(
+    gateway: PaymentGateway,
+    amount: number,
+    currency: string,
+    metadata: TransactionMetadata
+  ): Promise<QRPaymentResult> {
+    try {
+      let result: QRPaymentResult
+
+      switch (gateway) {
+        case 'stripe':
+          result = await this.generateStripeQR(amount, currency, metadata)
+          break
+        case 'mercadopago':
+          result = await this.generateMercadoPagoQR(amount, currency, metadata)
+          break
+        default:
+          throw new Error(`Unsupported payment gateway: ${gateway}`)
+      }
+
+      // Store active payment for monitoring
+      this.activePayments.set(result.paymentId, result)
+
+      // Set up expiration cleanup
+      setTimeout(() => {
+        this.expirePayment(result.paymentId)
+      }, 30 * 60 * 1000) // 30 minutes
+
+      return result
+    } catch (error) {
+      console.error('QR generation failed:', error)
+      throw new Error(`Failed to generate QR code: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generate Stripe QR code using Payment Links
+   */
+  private async generateStripeQR(
+    amount: number,
+    currency: string,
+    metadata: TransactionMetadata
+  ): Promise<QRPaymentResult> {
+    try {
+      // For MVP, we'll use mock Stripe integration
+      // In production, this would create a real Stripe Payment Intent
+      const paymentIntent = await this.createMockStripePaymentIntent(amount, currency, metadata)
+
+      // Generate payment URL (in production, this would be the real Stripe checkout URL)
+      const paymentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/payment/stripe/${paymentIntent.id}?amount=${amount}&currency=${currency}`
+
+      // Generate QR code
+      const qrCode = await QRCode.toDataURL(paymentUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+
+      return {
+        qrCode,
+        paymentUrl,
+        paymentId: paymentIntent.id,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+        status: 'pending',
+        gateway: 'stripe'
+      }
+    } catch (error) {
+      throw new Error(`Stripe QR generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generate Mercado Pago QR code
+   */
+  private async generateMercadoPagoQR(
+    amount: number,
+    currency: string,
+    metadata: TransactionMetadata
+  ): Promise<QRPaymentResult> {
+    try {
+      // For MVP, we'll use mock Mercado Pago integration
+      // In production, this would create a real Mercado Pago preference
+      const preference = await this.createMockMercadoPagoPreference(amount, currency, metadata)
+
+      // Generate payment URL (in production, this would be the real Mercado Pago checkout URL)
+      const paymentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/payment/mercadopago/${preference.id}?amount=${amount}&currency=${currency}`
+
+      // Generate QR code
+      const qrCode = await QRCode.toDataURL(paymentUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+
+      return {
+        qrCode,
+        paymentUrl,
+        paymentId: preference.id,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+        status: 'pending',
+        gateway: 'mercadopago'
+      }
+    } catch (error) {
+      throw new Error(`Mercado Pago QR generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Check payment status
+   */
+  async checkPaymentStatus(paymentId: string, gateway: PaymentGateway): Promise<PaymentStatus> {
+    try {
+      switch (gateway) {
+        case 'stripe':
+          return await this.checkStripePaymentStatus(paymentId)
+        case 'mercadopago':
+          return await this.checkMercadoPagoPaymentStatus(paymentId)
+        default:
+          throw new Error(`Unsupported payment gateway: ${gateway}`)
+      }
+    } catch (error) {
+      console.error('Payment status check failed:', error)
+      return 'failed'
+    }
+  }
+
+  /**
+   * Start monitoring payment status with real-time updates
+   */
+  startPaymentMonitoring(
+    paymentId: string,
+    gateway: PaymentGateway,
+    onUpdate: (update: PaymentStatusUpdate) => void
+  ): () => void {
+    // Store the listener
+    this.statusListeners.set(paymentId, onUpdate)
+
+    // Start polling for updates
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await this.checkPaymentStatus(paymentId, gateway)
+        const activePayment = this.activePayments.get(paymentId)
+
+        if (activePayment && status !== activePayment.status) {
+          // Status changed, notify listener
+          const update: PaymentStatusUpdate = {
+            paymentId,
+            status,
+            gateway,
+            timestamp: new Date()
+          }
+
+          // Update stored payment
+          activePayment.status = status
+          this.activePayments.set(paymentId, activePayment)
+
+          // Notify listener
+          onUpdate(update)
+
+          // Stop monitoring if payment is complete or failed
+          if (status === 'completed' || status === 'failed' || status === 'expired') {
+            clearInterval(pollInterval)
+            this.statusListeners.delete(paymentId)
+          }
+        }
+      } catch (error) {
+        console.error('Payment monitoring error:', error)
+      }
+    }, 2000) // Poll every 2 seconds
+
+    // Return cleanup function
+    return () => {
+      clearInterval(pollInterval)
+      this.statusListeners.delete(paymentId)
+    }
+  }
+
+  /**
+   * Mock Stripe Payment Intent creation (for MVP)
+   */
+  private async createMockStripePaymentIntent(
+    amount: number,
+    currency: string,
+    metadata: TransactionMetadata
+  ) {
+    // In production, this would call the real Stripe API
+    return {
+      id: `pi_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      amount: amount * 100, // Stripe uses cents
+      currency: currency.toLowerCase(),
+      status: 'requires_payment_method',
+      metadata: {
+        transaction_id: metadata.transactionId,
+        merchant_id: metadata.merchantId
+      }
+    }
+  }
+
+  /**
+   * Mock Mercado Pago Preference creation (for MVP)
+   */
+  private async createMockMercadoPagoPreference(
+    amount: number,
+    currency: string,
+    metadata: TransactionMetadata
+  ) {
+    // In production, this would call the real Mercado Pago API
+    return {
+      id: `mp_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      collector_id: metadata.merchantId,
+      items: metadata.items.map(item => ({
+        id: item.id,
+        title: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        currency_id: currency.toUpperCase()
+      })),
+      total_amount: amount
+    }
+  }
+
+  /**
+   * Mock Stripe payment status check
+   */
+  private async checkStripePaymentStatus(paymentId: string): Promise<PaymentStatus> {
+    // In production, this would call stripe.paymentIntents.retrieve(paymentId)
+    // For MVP, we'll simulate payment completion after 10 seconds
+    const activePayment = this.activePayments.get(paymentId)
+    if (!activePayment) return 'failed'
+
+    const timeSinceCreation = Date.now() - (activePayment.expiresAt.getTime() - 30 * 60 * 1000)
+    
+    if (timeSinceCreation > 10000) { // 10 seconds
+      return 'completed'
+    } else if (timeSinceCreation > 5000) { // 5 seconds
+      return 'confirming'
+    } else {
+      return 'waiting'
+    }
+  }
+
+  /**
+   * Mock Mercado Pago payment status check
+   */
+  private async checkMercadoPagoPaymentStatus(paymentId: string): Promise<PaymentStatus> {
+    // In production, this would call mercadoPago.payment.findById(paymentId)
+    // For MVP, we'll simulate payment completion after 12 seconds
+    const activePayment = this.activePayments.get(paymentId)
+    if (!activePayment) return 'failed'
+
+    const timeSinceCreation = Date.now() - (activePayment.expiresAt.getTime() - 30 * 60 * 1000)
+    
+    if (timeSinceCreation > 12000) { // 12 seconds
+      return 'completed'
+    } else if (timeSinceCreation > 6000) { // 6 seconds
+      return 'confirming'
+    } else {
+      return 'waiting'
+    }
+  }
+
+  /**
+   * Expire a payment
+   */
+  private expirePayment(paymentId: string): void {
+    const activePayment = this.activePayments.get(paymentId)
+    if (activePayment && activePayment.status === 'pending') {
+      activePayment.status = 'expired'
+      this.activePayments.set(paymentId, activePayment)
+
+      // Notify listener if exists
+      const listener = this.statusListeners.get(paymentId)
+      if (listener) {
+        listener({
+          paymentId,
+          status: 'expired',
+          gateway: activePayment.gateway,
+          timestamp: new Date()
+        })
+      }
+    }
+  }
+
+  /**
+   * Clean up expired payments
+   */
+  cleanup(): void {
+    const now = Date.now()
+    for (const [paymentId, payment] of this.activePayments.entries()) {
+      if (payment.expiresAt.getTime() < now) {
+        this.activePayments.delete(paymentId)
+        this.statusListeners.delete(paymentId)
+      }
+    }
+  }
+}
+
+export default QRPaymentGateway 

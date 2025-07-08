@@ -1,0 +1,64 @@
+## Executive Summary
+
+### Project Vision
+BitAgora POS is a comprehensive, modern point-of-sale and business management system designed to empower merchants with advanced tools. Built using a **frontend-first development approach**, it features an intuitive dark-themed user interface and supports multiple payment methods, with a strong focus on cryptocurrency transactions, including Bitcoin and stablecoins via the Lightning Network.
+
+### Development Philosophy
+BitAgora POS follows a **frontend-first development strategy** that prioritizes user experience and enables rapid development cycles. This approach allows for:
+- Complete UI/UX development with mock data before backend implementation
+- Early stakeholder feedback and validation
+- Parallel frontend and backend development workflows
+- Seamless transition from mock to real APIs through abstraction layers
+
+## Key Features and Functionality
+
+### Secure Authentication System
+- **PIN-based authentication** for POS users (4-digit PIN pad interface)
+- **Email/password authentication** for admin users via Supabase
+- **Role-based access control** for enhanced security (admin, manager, employee)
+- **Session management** with secure cookie handling
+
+### Intuitive POS Interface
+- **Grid-based product display** with category filtering and search
+- **Easy cart management** for quick transactions with real-time updates
+- **Multi-payment processing** (cash, credit card, Bitcoin, Lightning, USDT)
+- **QR code generation** for seamless crypto payments
+- **Receipt generation** with transaction details and payment confirmation
+
+### Comprehensive Dashboard
+- **Real-time sales analytics** with interactive charts and graphs
+- **Employee performance tracking** and inventory management
+- **Financial reporting** for business insights and tax compliance
+- **Transaction history** with detailed filtering and export capabilities
+
+### Business Management Tools
+- **Customer relationship management** (CRM) with purchase history
+- **Invoice generation** and automated billing
+- **Employee scheduling** and time tracking
+- **Discount management** for promotions and loyalty programs
+- **Inventory tracking** with low-stock alerts and reorder points
+
+### Payment Integrations
+- **Bitcoin and Lightning Network**: Direct Bitcoin payments and instant, low-fee transactions
+- **USDT Payments**: Stablecoin support for ERC-20 and TRC-20 USDT on Ethereum and Tron networks
+- **Bitcoin Pay**: Streamlined Bitcoin payment processing for merchants
+- **Voltage**: Secure and scalable Lightning Network payment processing
+- **Stripe**: Credit card processing and recurring billing for subscriptions
+- **Mercado Pago**: Localized payment processing for the Argentine market
+
+### Subscription Management (Paddle Integration)
+- **Merchant subscription management** with tiered pricing plans
+- **Automated billing and invoicing** for BitAgora POS services
+- **Webhook handling** for subscription events and payment notifications
+- **Usage tracking** and billing analytics
+
+---
+
+## **📋 Documentation References**
+
+For detailed technical implementation and development strategy, see:
+- **[Project Context](Project%20Context)** - Technical requirements and technology stack
+- **[Frontend Development Strategy](Frontend%20Development%20Strategy)** - Local development approach
+- **[Pages Roadmap](Pages%20Roadmap)** - Complete page development sequence
+- **[Database Schemas](Database%20Schemas)** - Data structure and API contracts
+- **[UI/UX Guidelines](UI/UX%20)** - Design system and component styling

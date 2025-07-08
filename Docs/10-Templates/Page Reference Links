@@ -1,0 +1,241 @@
+# BitAgora POS - Page Reference Links
+## Quick Navigation & Testing Guide
+
+### **🚀 Development Server**
+- **Local Development**: http://localhost:3001
+- **Network Access**: http://192.168.0.139:3001
+
+---
+
+## **📋 Core Application Pages**
+
+### **🏠 Public & Landing Pages**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Landing Page** | [http://localhost:3001/](http://localhost:3001/) | ✅ Working | Main marketing page with features, pricing, CTA |
+| **About Page** | [http://localhost:3001/about](http://localhost:3001/about) | ❌ Not Implemented | Company information and mission |
+| **Pricing Page** | [http://localhost:3001/pricing](http://localhost:3001/pricing) | ❌ Not Implemented | Detailed subscription plans |
+| **Features Page** | [http://localhost:3001/features](http://localhost:3001/features) | ❌ Not Implemented | Feature showcase and demos |
+
+### **🔐 Authentication Pages**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Registration** | [http://localhost:3001/register](http://localhost:3001/register) | ✅ Working | 5-step admin registration with PIN creation |
+| **Admin Login** | [http://localhost:3001/login](http://localhost:3001/login) | ✅ Working | Email/password + PIN toggle for POS |
+| **Forgot Password** | [http://localhost:3001/auth/forgot-password](http://localhost:3001/auth/forgot-password) | ❌ Not Implemented | Password reset flow |
+| **Reset Password** | [http://localhost:3001/auth/reset-password](http://localhost:3001/auth/reset-password) | ❌ Not Implemented | New password setup |
+
+### **📝 Onboarding Flow (4-Step Process)**
+| Step | Page | URL | Status | Description |
+|------|------|-----|--------|-------------|
+| **Welcome** | Welcome | [http://localhost:3001/onboarding/welcome](http://localhost:3001/onboarding/welcome) | ✅ Working | Post-registration welcome & overview |
+| **Step 1** | Admin Setup | [http://localhost:3001/onboarding/admin-setup](http://localhost:3001/onboarding/admin-setup) | ✅ Working | Complete admin profile setup + PIN creation |
+| **Step 2** | Business Setup | [http://localhost:3001/onboarding/business-setup](http://localhost:3001/onboarding/business-setup) | ✅ Working | Business configuration & branding |
+| **Step 3** | QR Setup | [http://localhost:3001/onboarding/qr-setup](http://localhost:3001/onboarding/qr-setup) | ✅ Working | 30+ regional QR payment providers |
+| **Step 4** | Payment Setup | [http://localhost:3001/onboarding/payment-setup](http://localhost:3001/onboarding/payment-setup) | ✅ Working | Crypto wallets & payment processors |
+
+---
+
+## **🎯 Core Business Application**
+
+### **📊 Dashboard & Analytics**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Admin Dashboard** | [http://localhost:3001/dashboard](http://localhost:3001/dashboard) | ✅ Working | Comprehensive business analytics & metrics |
+| **Sales Analytics** | [http://localhost:3001/dashboard/sales](http://localhost:3001/dashboard/sales) | ❌ Not Implemented | Detailed sales reports & trends |
+| **Inventory Overview** | [http://localhost:3001/dashboard/inventory](http://localhost:3001/dashboard/inventory) | ❌ Not Implemented | Stock levels & alerts |
+| **Reports Hub** | [http://localhost:3001/dashboard/reports](http://localhost:3001/dashboard/reports) | ❌ Not Implemented | Custom reports & analytics |
+
+### **🛒 Point of Sale System**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Main POS Interface** | [http://localhost:3001/pos](http://localhost:3001/pos) | ✅ Working | Product catalog, cart, 22+ mock products |
+| **Checkout Process** | [http://localhost:3001/pos/checkout](http://localhost:3001/pos/checkout) | ❌ Not Implemented | Cart review & customer info |
+| **Payment Selection** | [http://localhost:3001/pos/payment](http://localhost:3001/pos/payment) | ❌ Not Implemented | Multi-payment method selection |
+| **Cash Payment** | [http://localhost:3001/pos/payment/cash](http://localhost:3001/pos/payment/cash) | ❌ Not Implemented | Cash handling & change |
+| **Crypto Payment** | [http://localhost:3001/pos/payment/crypto](http://localhost:3001/pos/payment/crypto) | ❌ Not Implemented | QR code & crypto payments |
+| **Receipt Generation** | [http://localhost:3001/pos/receipt](http://localhost:3001/pos/receipt) | ❌ Not Implemented | Digital receipts & printing |
+
+### **⚙️ Admin Management**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Admin Hub** | [http://localhost:3001/admin](http://localhost:3001/admin) | ✅ Working | Master admin dashboard & settings |
+| **Team Management** | [http://localhost:3001/admin/team](http://localhost:3001/admin/team) | ❌ Not Implemented | Employee management & roles |
+| **Business Settings** | [http://localhost:3001/admin/business](http://localhost:3001/admin/business) | ❌ Not Implemented | Business profile & configuration |
+| **System Settings** | [http://localhost:3001/admin/system](http://localhost:3001/admin/system) | ❌ Not Implemented | System configuration & integrations |
+
+---
+
+## **👥 Employee Management System**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Employee Hub** | [http://localhost:3001/employees](http://localhost:3001/employees) | ❌ Not Implemented | Employee directory & overview |
+| **Add Employee** | [http://localhost:3001/employees/add](http://localhost:3001/employees/add) | ❌ Not Implemented | Create new employee accounts |
+| **Edit Employee** | [http://localhost:3001/employees/edit/[id]](http://localhost:3001/employees/edit/) | ❌ Not Implemented | Modify employee profiles |
+| **Shift Management** | [http://localhost:3001/employees/shifts](http://localhost:3001/employees/shifts) | ❌ Not Implemented | Schedule & time tracking |
+| **PIN Setup** | [http://localhost:3001/auth/setup-pin](http://localhost:3001/auth/setup-pin) | ❌ Not Implemented | Employee PIN modification |
+
+---
+
+## **📦 Product Management**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Products Hub** | [http://localhost:3001/products](http://localhost:3001/products) | ❌ Not Implemented | Product catalog overview |
+| **Add Product** | [http://localhost:3001/products/add](http://localhost:3001/products/add) | ❌ Not Implemented | Create new products |
+| **Edit Product** | [http://localhost:3001/products/edit/[id]](http://localhost:3001/products/edit/) | ❌ Not Implemented | Modify product details |
+| **Categories** | [http://localhost:3001/products/categories](http://localhost:3001/products/categories) | ❌ Not Implemented | Category management |
+
+---
+
+## **👤 Customer Management**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Customer Hub** | [http://localhost:3001/customers](http://localhost:3001/customers) | ❌ Not Implemented | Customer directory |
+| **Add Customer** | [http://localhost:3001/customers/add](http://localhost:3001/customers/add) | ❌ Not Implemented | Create customer profiles |
+| **Edit Customer** | [http://localhost:3001/customers/edit/[id]](http://localhost:3001/customers/edit/) | ❌ Not Implemented | Modify customer details |
+
+---
+
+## **💰 Financial Management**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Finance Hub** | [http://localhost:3001/finance](http://localhost:3001/finance) | ❌ Not Implemented | Financial overview |
+| **Transactions** | [http://localhost:3001/finance/transactions](http://localhost:3001/finance/transactions) | ❌ Not Implemented | Transaction management |
+| **Payroll** | [http://localhost:3001/finance/payroll](http://localhost:3001/finance/payroll) | ❌ Not Implemented | Employee payroll |
+
+---
+
+## **⚙️ Settings & Configuration**
+| Page | URL | Status | Description |
+|------|-----|--------|-------------|
+| **Settings Hub** | [http://localhost:3001/settings](http://localhost:3001/settings) | ❌ Not Implemented | Main settings overview |
+| **Business Profile** | [http://localhost:3001/settings/profile](http://localhost:3001/settings/profile) | ❌ Not Implemented | Business information |
+| **User Management** | [http://localhost:3001/settings/users](http://localhost:3001/settings/users) | ❌ Not Implemented | Account administration |
+| **Payment Settings** | [http://localhost:3001/settings/payments](http://localhost:3001/settings/payments) | ❌ Not Implemented | Payment configuration |
+| **Integrations** | [http://localhost:3001/settings/integrations](http://localhost:3001/settings/integrations) | ❌ Not Implemented | Third-party integrations |
+
+---
+
+## **📋 API Endpoints & Testing**
+
+### **✅ Working API Endpoints**
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|---------|
+| `/api/payment-settings` | GET, PUT | Payment configurations | ✅ Working |
+| `/api/payment-credentials` | GET, POST | API keys & credentials | ✅ Working |
+| `/api/payment-fees` | GET, PUT | Fee structures | ✅ Working |
+| `/api/qr-providers` | GET, POST, DELETE | QR payment providers | ✅ Working |
+| `/api/onboarding-progress` | GET, PUT | Setup progress tracking | ✅ Working |
+
+### **❌ Missing API Endpoints (Needed)**
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|---------|
+| `/api/products` | GET, POST, PUT, DELETE | Product management | ❌ Not Implemented |
+| `/api/transactions` | GET, POST, PUT | Transaction processing | ❌ Not Implemented |
+| `/api/employees` | GET, POST, PUT, DELETE | Employee management | ❌ Not Implemented |
+| `/api/customers` | GET, POST, PUT, DELETE | Customer management | ❌ Not Implemented |
+| `/api/cart-sessions` | GET, POST, PUT, DELETE | Shopping cart persistence | ❌ Not Implemented |
+
+---
+
+## **🧪 Testing Quick Links**
+
+### **🔗 Complete User Flow Testing**
+1. **Registration**: [Start Here →](http://localhost:3001/register)
+2. **Onboarding Step 1**: [Admin Setup →](http://localhost:3001/onboarding/admin-setup)  
+3. **Onboarding Step 2**: [Business Setup →](http://localhost:3001/onboarding/business-setup)
+4. **Onboarding Step 3**: [QR Setup →](http://localhost:3001/onboarding/qr-setup)
+5. **Onboarding Step 4**: [Payment Setup →](http://localhost:3001/onboarding/payment-setup)
+6. **Dashboard**: [Admin Dashboard →](http://localhost:3001/dashboard)
+7. **POS System**: [Start Selling →](http://localhost:3001/pos)
+
+### **🚦 Status Check Commands**
+```bash
+# Test all working pages
+curl -s -o /dev/null -w "%{http_code} - Landing\n" http://localhost:3001/
+curl -s -o /dev/null -w "%{http_code} - Register\n" http://localhost:3001/register
+curl -s -o /dev/null -w "%{http_code} - Login\n" http://localhost:3001/login
+curl -s -o /dev/null -w "%{http_code} - Dashboard\n" http://localhost:3001/dashboard
+curl -s -o /dev/null -w "%{http_code} - POS\n" http://localhost:3001/pos
+curl -s -o /dev/null -w "%{http_code} - Admin\n" http://localhost:3001/admin
+
+# Test onboarding flow
+curl -s -o /dev/null -w "%{http_code} - Welcome\n" http://localhost:3001/onboarding/welcome
+curl -s -o /dev/null -w "%{http_code} - Admin Setup\n" http://localhost:3001/onboarding/admin-setup
+curl -s -o /dev/null -w "%{http_code} - Business Setup\n" http://localhost:3001/onboarding/business-setup
+curl -s -o /dev/null -w "%{http_code} - QR Setup\n" http://localhost:3001/onboarding/qr-setup
+curl -s -o /dev/null -w "%{http_code} - Payment Setup\n" http://localhost:3001/onboarding/payment-setup
+```
+
+---
+
+## **📊 Development Progress Summary**
+
+### **✅ Completed (11 Pages)**
+- Landing Page, Registration (5-step), Login
+- Complete Onboarding Flow (4 steps)
+- Admin Dashboard, POS System, Basic Admin Page
+
+### **🚧 In Progress (PIN Authentication)**
+- ✅ PIN creation integrated in registration
+- ✅ PIN setup added to admin onboarding flow
+- PIN login placeholder in login page
+
+### **❌ High Priority Missing**
+1. **Employee Management System** - Admin creates employees with PINs
+2. **PIN-based POS Login** - Employee authentication
+3. **Payment Processing** - Integration with configured payment methods
+4. **Transaction Storage** - Save completed sales
+5. **Product Management** - CRUD operations for inventory
+
+---
+
+## **🔧 Mock Database Storage**
+
+### **✅ Current Storage (localStorage)**
+- `bitagora_users` - Admin accounts with PINs
+- `bitagora_payment_settings_{merchantId}` - Payment configurations
+- `bitagora_payment_credentials_{merchantId}` - API keys
+- `bitagora_payment_fees_{merchantId}` - Fee structures
+- `bitagora_qr_providers_{merchantId}` - QR payment systems
+- `bitagora_onboarding_progress_{merchantId}` - Setup progress
+
+### **✅ Enhanced Storage (New)**
+- `bitagora_products_{merchantId}` - Product catalog
+- `bitagora_transactions_{merchantId}` - Sales transactions
+- `bitagora_employees_{merchantId}` - Employee accounts
+- `bitagora_cart_sessions_{merchantId}` - Shopping cart persistence
+
+---
+
+## **📝 Usage Notes**
+
+### **Quick Testing Workflow**
+1. **Start Development Server**: `npm run dev`
+2. **Open Landing Page**: [http://localhost:3001/](http://localhost:3001/)
+3. **Test Registration**: Complete 5-step process with PIN creation
+4. **Test Login**: Use registered admin account
+5. **Explore Dashboard**: View business analytics
+6. **Test POS**: Add products to cart, test functionality
+
+### **Debug & Data Tools**
+```javascript
+// In browser console:
+window.mockAPI.exportData()          // View all stored data
+window.mockAPI.getUsers()           // View all users
+window.mockAPI.clearAllData()       // Clear all storage
+```
+
+---
+
+## **📚 Related Documentation**
+- **[Pages Roadmap](Pages%20Roadmap)** - Complete development plan
+- **[Database Strategy](Database%20Strategy)** - Storage implementation guide
+- **[Page Format Reference](Page%20Format%20Reference)** - UI/UX specifications
+- **[Development Logs](Development%20Logs)** - Session progress tracking
+
+---
+
+**Last Updated**: January 6, 2025  
+**Development Server**: http://localhost:3001  
+**Status**: Frontend-First Development Phase ✅ 

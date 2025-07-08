@@ -1,0 +1,234 @@
+-- BitAgora Payment Settings Database Schema Extension
+-- Extends the main schema with payment configuration tables
+-- Last Updated: 2025-01-06
+
+-- MERCHANT PAYMENT SETTINGS TABLE
+CREATE TABLE merchant_payment_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    -- Basic Payment Methods
+    accept_cash BOOLEAN DEFAULT TRUE,
+    accept_cards BOOLEAN DEFAULT TRUE,
+    
+    -- Cryptocurrency Settings
+    accept_bitcoin BOOLEAN DEFAULT FALSE,
+    accept_bitcoin_lightning BOOLEAN DEFAULT FALSE,
+    accept_usdt_ethereum BOOLEAN DEFAULT FALSE,
+    accept_usdt_tron BOOLEAN DEFAULT FALSE,
+    
+    -- Cryptocurrency Wallet Addresses
+    bitcoin_wallet_address TEXT,
+    bitcoin_lightning_address TEXT,
+    usdt_ethereum_wallet_address TEXT,
+    usdt_tron_wallet_address TEXT,
+    
+    -- Payment Processor Configuration
+    stripe_enabled BOOLEAN DEFAULT FALSE,
+    paypal_enabled BOOLEAN DEFAULT FALSE,
+    square_enabled BOOLEAN DEFAULT FALSE,
+    
+    -- Security Settings
+    require_signature BOOLEAN DEFAULT TRUE,
+    require_id BOOLEAN DEFAULT FALSE,
+    auto_settle BOOLEAN DEFAULT TRUE,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Ensure one settings record per merchant
+    UNIQUE(merchant_id)
+);
+
+-- PAYMENT PROCESSOR CREDENTIALS TABLE
+CREATE TABLE merchant_payment_credentials (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    processor_name VARCHAR(50) NOT NULL, -- 'stripe', 'paypal', 'square'
+    
+    -- Encrypted credentials (would be encrypted in production)
+    api_key_encrypted TEXT,
+    client_id_encrypted TEXT,
+    application_id_encrypted TEXT,
+    webhook_secret_encrypted TEXT,
+    
+    -- Environment
+    environment VARCHAR(20) DEFAULT 'sandbox', -- 'sandbox', 'production'
+    
+    -- Status
+    active BOOLEAN DEFAULT TRUE,
+    last_tested TIMESTAMP WITH TIME ZONE,
+    test_status VARCHAR(20), -- 'success', 'failed', 'pending'
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Ensure unique processor per merchant
+    UNIQUE(merchant_id, processor_name)
+);
+
+-- PAYMENT METHOD FEES TABLE
+CREATE TABLE merchant_payment_fees (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    payment_method VARCHAR(50) NOT NULL, -- 'cash', 'bitcoin', 'bitcoin_lightning', 'usdt_ethereum', 'usdt_tron', 'stripe', 'paypal', 'square'
+    
+    -- Fee Structure
+    percentage_fee DECIMAL(5,2) DEFAULT 0.00, -- e.g., 2.90 for 2.9%
+    fixed_fee DECIMAL(10,2) DEFAULT 0.00, -- e.g., 0.30 for $0.30
+    
+    -- Currency
+    currency VARCHAR(3) DEFAULT 'USD',
+    
+    -- Status
+    active BOOLEAN DEFAULT TRUE,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Ensure unique payment method per merchant
+    UNIQUE(merchant_id, payment_method)
+);
+
+-- QR PAYMENT PROVIDERS TABLE
+CREATE TABLE merchant_qr_providers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    -- Provider Information
+    provider_name VARCHAR(100) NOT NULL, -- 'Square', 'PayPal QR', 'Alipay', etc.
+    provider_region VARCHAR(50) NOT NULL, -- 'North America', 'Asia', 'Europe', 'South America', 'Custom'
+    provider_type VARCHAR(20) NOT NULL, -- 'regional', 'custom'
+    
+    -- Custom provider fields (for custom providers)
+    custom_name VARCHAR(100),
+    custom_description TEXT,
+    
+    -- Configuration
+    enabled BOOLEAN DEFAULT FALSE,
+    qr_code_file_path TEXT, -- Path to uploaded QR code image
+    
+    -- Fee Structure
+    percentage_fee DECIMAL(5,2) DEFAULT 0.00,
+    fixed_fee DECIMAL(10,2) DEFAULT 0.00,
+    currency VARCHAR(3) DEFAULT 'USD',
+    
+    -- API Configuration (if applicable)
+    api_endpoint TEXT,
+    api_key_encrypted TEXT,
+    webhook_url TEXT,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Ensure unique provider per merchant (except for custom providers)
+    UNIQUE(merchant_id, provider_name, provider_region)
+);
+
+-- ONBOARDING PROGRESS TABLE
+CREATE TABLE merchant_onboarding_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
+    
+    -- Step Completion Status
+    admin_setup_completed BOOLEAN DEFAULT FALSE,
+    business_setup_completed BOOLEAN DEFAULT FALSE,
+    payment_setup_completed BOOLEAN DEFAULT FALSE,
+    qr_setup_completed BOOLEAN DEFAULT FALSE,
+    
+    -- Step Completion Timestamps
+    admin_setup_completed_at TIMESTAMP WITH TIME ZONE,
+    business_setup_completed_at TIMESTAMP WITH TIME ZONE,
+    payment_setup_completed_at TIMESTAMP WITH TIME ZONE,
+    qr_setup_completed_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Overall Onboarding Status
+    onboarding_completed BOOLEAN DEFAULT FALSE,
+    onboarding_completed_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Current Step
+    current_step VARCHAR(20) DEFAULT 'admin-setup', -- 'admin-setup', 'business-setup', 'payment-setup', 'qr-setup', 'completed'
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Ensure one progress record per merchant
+    UNIQUE(merchant_id)
+);
+
+-- INDEXES FOR PERFORMANCE
+CREATE INDEX idx_payment_settings_merchant ON merchant_payment_settings(merchant_id);
+CREATE INDEX idx_payment_credentials_merchant ON merchant_payment_credentials(merchant_id);
+CREATE INDEX idx_payment_credentials_processor ON merchant_payment_credentials(processor_name);
+CREATE INDEX idx_payment_fees_merchant ON merchant_payment_fees(merchant_id);
+CREATE INDEX idx_payment_fees_method ON merchant_payment_fees(payment_method);
+CREATE INDEX idx_qr_providers_merchant ON merchant_qr_providers(merchant_id);
+CREATE INDEX idx_qr_providers_enabled ON merchant_qr_providers(enabled);
+CREATE INDEX idx_onboarding_progress_merchant ON merchant_onboarding_progress(merchant_id);
+CREATE INDEX idx_onboarding_progress_step ON merchant_onboarding_progress(current_step);
+
+-- FUNCTIONS FOR AUTOMATIC TIMESTAMP UPDATES
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- TRIGGERS FOR AUTOMATIC TIMESTAMP UPDATES
+CREATE TRIGGER update_merchant_payment_settings_updated_at 
+    BEFORE UPDATE ON merchant_payment_settings 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_merchant_payment_credentials_updated_at 
+    BEFORE UPDATE ON merchant_payment_credentials 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_merchant_payment_fees_updated_at 
+    BEFORE UPDATE ON merchant_payment_fees 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_merchant_qr_providers_updated_at 
+    BEFORE UPDATE ON merchant_qr_providers 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_merchant_onboarding_progress_updated_at 
+    BEFORE UPDATE ON merchant_onboarding_progress 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- SAMPLE DATA INSERTS (for development/testing)
+-- Note: This would typically be handled by the application, not the schema
+
+-- DEFAULT PAYMENT FEES (common processor rates)
+-- These can be used as defaults when setting up new merchants
+-- INSERT INTO merchant_payment_fees (merchant_id, payment_method, percentage_fee, fixed_fee) VALUES
+-- ('sample-merchant-id', 'stripe', 2.90, 0.30),
+-- ('sample-merchant-id', 'paypal', 3.50, 0.30),
+-- ('sample-merchant-id', 'square', 2.60, 0.10),
+-- ('sample-merchant-id', 'cash', 0.00, 0.00),
+-- ('sample-merchant-id', 'bitcoin', 0.00, 0.00),
+-- ('sample-merchant-id', 'bitcoin_lightning', 0.00, 0.00),
+-- ('sample-merchant-id', 'usdt_ethereum', 0.00, 0.00),
+-- ('sample-merchant-id', 'usdt_tron', 0.00, 0.00);
+
+-- Comments for documentation
+COMMENT ON TABLE merchant_payment_settings IS 'Stores payment method preferences and wallet addresses for each merchant';
+COMMENT ON TABLE merchant_payment_credentials IS 'Stores encrypted API credentials for payment processors';
+COMMENT ON TABLE merchant_payment_fees IS 'Stores custom fee structures for each payment method per merchant';
+COMMENT ON TABLE merchant_qr_providers IS 'Stores QR payment provider configurations including regional and custom providers';
+COMMENT ON TABLE merchant_onboarding_progress IS 'Tracks merchant onboarding progress through setup steps';
+
+COMMENT ON COLUMN merchant_payment_credentials.api_key_encrypted IS 'Encrypted API key using application-level encryption';
+COMMENT ON COLUMN merchant_payment_credentials.environment IS 'sandbox for testing, production for live transactions';
+COMMENT ON COLUMN merchant_qr_providers.provider_type IS 'regional for predefined providers, custom for user-created providers';
+COMMENT ON COLUMN merchant_onboarding_progress.current_step IS 'Current step in onboarding flow';
+
+-- END OF PAYMENT SETTINGS SCHEMA 
