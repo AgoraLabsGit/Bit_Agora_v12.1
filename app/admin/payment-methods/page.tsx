@@ -2,8 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CreditCard, Wallet, AlertTriangle, RefreshCw, ArrowLeft, Clock } from "lucide-react"
-import Link from "next/link"
+import { CreditCard, Wallet, AlertTriangle, RefreshCw, Clock } from "lucide-react"
 
 // BitAgora Payment Settings - Following new architecture patterns
 import { usePaymentSettings } from './hooks/use-payment-settings'
@@ -81,18 +80,10 @@ export default function PaymentMethodsPage() {
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/admin" className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Admin
-                  </Link>
-                </Button>
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-6 w-6 text-destructive" />
-                  <h1 className="text-xl font-semibold text-foreground">Payment Settings Error</h1>
-                </div>
+            <div className="flex justify-between items-center h-16 sm:h-20">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+                <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Payment Settings Error</h1>
               </div>
             </div>
           </div>
@@ -110,7 +101,6 @@ export default function PaymentMethodsPage() {
                   Try Again
                 </Button>
                 <Button onClick={() => window.location.href = '/admin'}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Admin
                 </Button>
               </div>
@@ -133,18 +123,10 @@ export default function PaymentMethodsPage() {
         {/* Header */}
         <header className="bg-card border-b border-border">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/admin" className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Admin
-                  </Link>
-                </Button>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-6 w-6 text-primary" />
-                  <h1 className="text-xl font-semibold text-foreground">Payment Methods & QR Setup</h1>
-                </div>
+            <div className="flex justify-between items-center h-16 sm:h-20">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-6 w-6 text-primary" />
+                <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Payment Methods & QR Setup</h1>
               </div>
             </div>
           </div>
