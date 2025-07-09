@@ -1,5 +1,7 @@
 /**
  * Cryptocurrency address validation utilities
+ * BITCOIN-ONLY APPROACH - Supports only Bitcoin, Lightning, and USDT
+ * NO SHITCOINS ALLOWED
  */
 
 export interface ValidationResult {
@@ -23,14 +25,15 @@ export interface CurrencyInfo {
 
 /**
  * Validate cryptocurrency address format
+ * SUPPORTS ONLY: Bitcoin, Lightning, USDT (Ethereum & Tron networks)
  */
 export function validateCryptoAddress(address: string, cryptoType: string): ValidationResult {
-  if (!address || typeof address !== 'string') {
-    return {
-      isValid: false,
-      error: 'Address is required and must be a string'
+    if (!address || typeof address !== 'string') {
+      return {
+        isValid: false,
+        error: 'Address is required and must be a string'
+      }
     }
-  }
 
   const type = cryptoType.toLowerCase()
   let isValid = false
@@ -45,44 +48,46 @@ export function validateCryptoAddress(address: string, cryptoType: string): Vali
       details = isValid ? 'Valid Bitcoin address format' : 'Invalid Bitcoin address format'
       break
     
-    case 'ethereum':
-    case 'eth':
-    case 'usdt':
+    case 'usdt_ethereum':
       isValid = /^0x[a-fA-F0-9]{40}$/.test(address)
-      addressType = 'Ethereum'
-      details = isValid ? 'Valid Ethereum address format' : 'Invalid Ethereum address format'
+      addressType = 'USDT (Ethereum)'
+      details = isValid ? 'Valid USDT (Ethereum) address format' : 'Invalid USDT (Ethereum) address format'
       break
     
-    case 'litecoin':
-    case 'ltc':
-      isValid = /^(ltc1|[LM3])[a-zA-HJ-NP-Z0-9]{25,62}$/.test(address)
-      addressType = 'Litecoin'
-      details = isValid ? 'Valid Litecoin address format' : 'Invalid Litecoin address format'
-      break
-    
-    case 'dogecoin':
-    case 'doge':
-      isValid = /^D[5-9A-HJ-NP-U][1-9A-HJ-NP-Za-km-z]{32}$/.test(address)
-      addressType = 'Dogecoin'
-      details = isValid ? 'Valid Dogecoin address format' : 'Invalid Dogecoin address format'
+    case 'usdt_tron':
+      isValid = /^T[A-Za-z1-9]{33}$/.test(address)
+      addressType = 'USDT (Tron)'
+      details = isValid ? 'Valid USDT (Tron) address format' : 'Invalid USDT (Tron) address format'
       break
     
     case 'lightning':
-      isValid = /^ln(bc|tb)[a-z0-9]{1,}$/.test(address)
+      // Support both Lightning invoices (bolt11) and Lightning addresses
+      const isLightningInvoice = /^ln(bc|tb)[a-z0-9]{1,}$/.test(address)
+      const isLightningAddress = /^[\w\.-]+@[\w\.-]+\.\w+$/.test(address)
+      
+      isValid = isLightningInvoice || isLightningAddress
       addressType = 'Lightning'
-      details = isValid ? 'Valid Lightning invoice format' : 'Invalid Lightning invoice format'
+      
+      if (isLightningInvoice) {
+        details = 'Valid Lightning invoice format'
+      } else if (isLightningAddress) {
+        details = 'Valid Lightning address format'
+      } else {
+        details = 'Invalid Lightning format. Use either invoice (lnbc...) or address (user@domain.com)'
+      }
       break
     
     default:
-      console.warn(`Unknown crypto type for validation: ${cryptoType}`)
+      // NO SHITCOINS ALLOWED!
+      console.warn(`❌ Unsupported crypto type: ${cryptoType}`)
       return {
         isValid: false,
-        error: `Unknown cryptocurrency type: ${cryptoType}`,
-        addressType: 'Unknown'
+        error: `Cryptocurrency not supported: ${cryptoType}. BitAgora supports only Bitcoin, Lightning, and USDT.`,
+        addressType: 'Unsupported'
       }
-  }
+    }
 
-  return {
+    return {
     isValid,
     error: isValid ? undefined : details,
     addressType,
@@ -91,22 +96,22 @@ export function validateCryptoAddress(address: string, cryptoType: string): Vali
 }
 
 /**
- * Get currency information
+ * Get currency information - BITCOIN-ONLY
  */
 export function getCurrencyInfo(cryptoType: string): CurrencyInfo {
   switch (cryptoType.toLowerCase()) {
     case 'bitcoin':
     case 'btc':
       return { symbol: 'BTC', name: 'Bitcoin', network: 'Bitcoin' }
-    case 'ethereum':
-    case 'eth':
-      return { symbol: 'ETH', name: 'Ethereum', network: 'Ethereum' }
-    case 'usdt':
-      return { symbol: 'USDT', name: 'Tether', network: 'Ethereum/Tron' }
+    case 'usdt_ethereum':
+      return { symbol: 'USDT', name: 'Tether (Ethereum)', network: 'Ethereum' }
+    case 'usdt_tron':
+      return { symbol: 'USDT', name: 'Tether (Tron)', network: 'Tron' }
     case 'lightning':
       return { symbol: 'BTC', name: 'Bitcoin Lightning', network: 'Lightning Network' }
     default:
-      return { symbol: 'UNKNOWN', name: 'Unknown', network: 'Unknown' }
+      console.warn(`❌ Unsupported crypto type: ${cryptoType}`)
+      return { symbol: 'UNKNOWN', name: 'Unsupported Cryptocurrency', network: 'Not Supported' }
   }
 }
 

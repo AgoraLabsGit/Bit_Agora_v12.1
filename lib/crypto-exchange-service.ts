@@ -1,11 +1,12 @@
 // /lib/crypto-exchange-service.ts
-// Exchange rate service for USD to crypto conversion
+// Bitcoin-only exchange rate service
+// NO SHITCOINS ALLOWED
+
+import { StrikeLightningService } from './strike-lightning-service'
 
 export interface ExchangeRates {
   bitcoin: number
-  ethereum: number
-  tron: number
-  tether: number // USDT
+  usdt: number // USDT stable at ~$1
 }
 
 export interface CryptoConversionResult {
@@ -19,7 +20,6 @@ export interface CryptoConversionResult {
 }
 
 class CryptoExchangeService {
-  private readonly COINGECKO_API = 'https://api.coingecko.com/api/v3'
   private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
   private rateCache: { rates: ExchangeRates | null; timestamp: number } = {
     rates: null,
@@ -27,40 +27,37 @@ class CryptoExchangeService {
   }
 
   /**
-   * Get current exchange rates from CoinGecko API
+   * Get current exchange rates - Bitcoin from Strike API, USDT stable
    */
   async getExchangeRates(): Promise<ExchangeRates> {
     // Check cache first
     if (this.rateCache.rates && Date.now() - this.rateCache.timestamp < this.CACHE_DURATION) {
+      console.log('💰 Using cached exchange rates:', this.rateCache.rates)
       return this.rateCache.rates
     }
 
     try {
-      const response = await fetch(
-        `${this.COINGECKO_API}/simple/price?ids=bitcoin,ethereum,tron,tether&vs_currencies=usd`,
-        { 
-          headers: { 'Accept': 'application/json' },
-          // Add timeout to prevent hanging
-          signal: AbortSignal.timeout(10000)
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`)
+      // Get Bitcoin rate from Strike API (most accurate)
+      let bitcoinRate: number
+      try {
+        console.log('🔄 Fetching Bitcoin rate from Strike API...')
+        bitcoinRate = await StrikeLightningService.getExchangeRate()
+        console.log(`✅ Bitcoin rate from Strike API: $${bitcoinRate.toLocaleString()}`)
+      } catch (strikeError) {
+        console.warn('⚠️ Strike API failed for exchange rate:', strikeError)
+        console.warn('🔄 Using fallback Bitcoin rate')
+        bitcoinRate = 45000 // Fallback Bitcoin rate
       }
-
-      const data = await response.json()
       
       const rates: ExchangeRates = {
-        bitcoin: data.bitcoin?.usd || 0,
-        ethereum: data.ethereum?.usd || 0,
-        tron: data.tron?.usd || 0,
-        tether: data.tether?.usd || 1 // USDT should be ~$1
+        bitcoin: bitcoinRate,
+        usdt: 1.00 // USDT stable coin
       }
 
       // Validate rates
-      if (rates.bitcoin === 0 || rates.ethereum === 0) {
-        throw new Error('Invalid exchange rates received from API')
+      if (rates.bitcoin === 0 || rates.bitcoin < 1000 || rates.bitcoin > 200000) {
+        console.error('❌ Invalid Bitcoin exchange rate received:', rates.bitcoin)
+        throw new Error('Invalid Bitcoin exchange rate received')
       }
 
       // Cache the rates
@@ -69,24 +66,34 @@ class CryptoExchangeService {
         timestamp: Date.now()
       }
 
+      console.log(`✅ Exchange rates updated and cached:`)
+      console.log(`   - Bitcoin: $${bitcoinRate.toLocaleString()}`)
+      console.log(`   - USDT: $1.00`)
       return rates
+
     } catch (error) {
-      console.error('Exchange rate fetch error:', error)
+      console.error('❌ Exchange rate fetch error:', error)
       
       // Fallback to cached rates if available
       if (this.rateCache.rates) {
-        console.warn('Using cached exchange rates due to API error')
+        console.warn('⚠️ Using cached exchange rates due to API error')
         return this.rateCache.rates
       }
 
-      // Ultimate fallback rates (approximate)
-      console.warn('Using fallback exchange rates')
-      return {
+      // Ultimate fallback rates
+      console.warn('⚠️ Using fallback exchange rates - Strike API unavailable')
+      const fallbackRates = {
         bitcoin: 45000,
-        ethereum: 2500,
-        tron: 0.10,
-        tether: 1.00
+        usdt: 1.00
       }
+      
+      // Cache fallback rates for short duration
+      this.rateCache = {
+        rates: fallbackRates,
+        timestamp: Date.now()
+      }
+      
+      return fallbackRates
     }
   }
 
@@ -139,7 +146,7 @@ class CryptoExchangeService {
   async convertUSDToUSDT(usdAmount: number): Promise<CryptoConversionResult> {
     try {
       const rates = await this.getExchangeRates()
-      const usdtAmount = usdAmount / rates.tether
+      const usdtAmount = usdAmount / rates.usdt
       
       // USDT uses 6 decimal places
       const formattedAmount = usdtAmount.toFixed(6)
@@ -149,7 +156,7 @@ class CryptoExchangeService {
         cryptoAmount: usdtAmount,
         usdAmount,
         cryptoSymbol: 'USDT',
-        exchangeRate: rates.tether,
+        exchangeRate: rates.usdt,
         formattedAmount
       }
     } catch (error) {
@@ -193,7 +200,7 @@ class CryptoExchangeService {
         usdAmount,
         cryptoSymbol: 'SAT',
         exchangeRate: rates.bitcoin,
-        formattedAmount: satoshis.toString()
+        formattedAmount: satoshis.toLocaleString()
       }
     } catch (error) {
       return {
@@ -209,7 +216,7 @@ class CryptoExchangeService {
   }
 
   /**
-   * Get formatted crypto amount for display
+   * Get formatted crypto amount for display - BITCOIN ONLY
    */
   formatCryptoAmount(amount: number, symbol: string): string {
     switch (symbol) {
@@ -218,8 +225,9 @@ class CryptoExchangeService {
       case 'USDT':
         return `${amount.toFixed(6)} USDT`
       case 'SAT':
-        return `${Math.round(amount)} sat`
+        return `${Math.round(amount).toLocaleString()} sats`
       default:
+        console.warn(`❌ Unsupported crypto symbol: ${symbol}`)
         return `${amount} ${symbol}`
     }
   }
@@ -233,10 +241,10 @@ class CryptoExchangeService {
 }
 
 // Export singleton instance
-export const cryptoExchangeService = new CryptoExchangeService()
+export const cryptoExchangeService = new CryptoExchangeService() 
 
 /**
- * Get exchange rate for a specific cryptocurrency
+ * Get exchange rate for supported cryptocurrencies - BITCOIN ONLY
  * Helper function for compatibility with existing code
  */
 export async function getCryptoExchangeRate(symbol: string): Promise<number> {
@@ -247,42 +255,25 @@ export async function getCryptoExchangeRate(symbol: string): Promise<number> {
       case 'btc':
       case 'bitcoin':
         return rates.bitcoin
-      case 'eth':
-      case 'ethereum':
-        return rates.ethereum
-      case 'trx':
-      case 'tron':
-        return rates.tron
       case 'usdt':
       case 'tether':
-        return rates.tether
-      case 'ltc':
-      case 'litecoin':
-        return 90 // Approximate fallback
-      case 'doge':
-      case 'dogecoin':
-        return 0.08 // Approximate fallback
+        return rates.usdt
       default:
-        throw new Error(`Unsupported cryptocurrency: ${symbol}`)
+        // NO SHITCOINS ALLOWED!
+        console.error(`❌ Unsupported cryptocurrency: ${symbol}`)
+        throw new Error(`Cryptocurrency not supported: ${symbol}. BitAgora supports only Bitcoin and USDT.`)
     }
   } catch (error) {
     console.error(`Error getting exchange rate for ${symbol}:`, error)
-    // Return fallback rates
-    const fallbackRates: Record<string, number> = {
-      btc: 45000,
-      bitcoin: 45000,
-      eth: 2500,
-      ethereum: 2500,
-      trx: 0.10,
-      tron: 0.10,
-      usdt: 1.00,
-      tether: 1.00,
-      ltc: 90,
-      litecoin: 90,
-      doge: 0.08,
-      dogecoin: 0.08
+    
+    // Return fallback rates only for supported cryptos
+    if (symbol.toLowerCase() === 'btc' || symbol.toLowerCase() === 'bitcoin') {
+      return 45000 // Fallback Bitcoin rate
+    }
+    if (symbol.toLowerCase() === 'usdt' || symbol.toLowerCase() === 'tether') {
+      return 1.00 // Fallback USDT rate
     }
     
-    return fallbackRates[symbol.toLowerCase()] || 0
+    throw error // Re-throw for unsupported cryptos
   }
 } 

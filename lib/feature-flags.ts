@@ -48,7 +48,7 @@ export const featureFlags: FeatureFlag[] = [
     developmentStatus: 'active',
     version: '1.0.0'
   },
-
+  
   // Admin Features
   {
     key: 'ADMIN_DASHBOARD',
@@ -90,7 +90,7 @@ export const featureFlags: FeatureFlag[] = [
     developmentStatus: 'active',
     version: '1.0.0'
   },
-
+  
   // Security Features
   {
     key: 'PIN_PROTECTION',
@@ -112,7 +112,7 @@ export const featureFlags: FeatureFlag[] = [
     developmentStatus: 'archived',
     version: '1.0.0'
   },
-
+  
   // UI Features
   {
     key: 'DARK_MODE',
@@ -162,24 +162,24 @@ export const featureFlags: FeatureFlag[] = [
 export const isFeatureEnabled = (key: string): boolean => {
   const feature = featureFlags.find(f => f.key === key)
   return feature ? feature.enabled && !feature.archived : false
-}
-
+  }
+  
 export const getFeatureFlag = (key: string): FeatureFlag | undefined => {
   return featureFlags.find(f => f.key === key)
 }
 
 export const getEnabledFeatures = (): FeatureFlag[] => {
   return featureFlags.filter(f => f.enabled && !f.archived)
-}
-
+  }
+  
 export const getArchivedFeatures = (): FeatureFlag[] => {
   return featureFlags.filter(f => f.archived)
-}
-
+  }
+  
 export const getFeaturesByCategory = (category: FeatureFlag['category']): FeatureFlag[] => {
   return featureFlags.filter(f => f.category === category)
-}
-
+  }
+  
 // Note: Payment methods are now controlled by database settings, not feature flags
 // Use PaymentSettingsAPI.getSettings() to check enabled payment methods
 

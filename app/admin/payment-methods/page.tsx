@@ -175,16 +175,16 @@ export default function PaymentMethodsPage() {
               description="Credit/debit card processing with Stripe, PayPal, and Square"
               icon={CreditCard}
               enabled={formData.acceptCards}
-              onEnabledChange={(enabled) => handleCheckboxChange('acceptCards', enabled)}
+                onEnabledChange={(enabled) => handleCheckboxChange('acceptCards', enabled)}
               status={formData.acceptCards ? 'active' : 'disabled'}
-            >
+              >
               {formData.acceptCards && (
                 <div className="space-y-4">
                   {/* Credit card configuration */}
                   <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3">
                       <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-                      <div>
+                  <div>
                         <p className="text-sm font-medium text-green-800 dark:text-green-200">Credit Card Processing Enabled</p>
                         <p className="text-sm text-green-700 dark:text-green-300">
                           Configure your Stripe, PayPal, and Square integrations for credit and debit card payments.
@@ -214,9 +214,9 @@ export default function PaymentMethodsPage() {
                         disabled 
                       />
                       <p className="text-xs text-muted-foreground mt-1">PayPal REST API Client ID</p>
-                    </div>
                   </div>
                 </div>
+              </div>
               )}
             </PaymentMethodCard>
           </PaymentMethodErrorBoundary>

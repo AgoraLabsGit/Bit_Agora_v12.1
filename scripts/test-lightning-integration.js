@@ -336,7 +336,7 @@ async function testErrorHandling() {
     }
     
     return { success: true }
-    
+
   } catch (error) {
     logTest('Error handling test error', false, error.message)
     return { success: false, error: error.message }
@@ -386,7 +386,7 @@ async function testPerformance() {
     logTest('Exchange rate caching', cachedRateTime < firstRateTime, `First: ${firstRateTime}ms, Cached: ${cachedRateTime}ms`)
     
     return { success: true }
-    
+
   } catch (error) {
     logTest('Performance test error', false, error.message)
     return { success: false, error: error.message }

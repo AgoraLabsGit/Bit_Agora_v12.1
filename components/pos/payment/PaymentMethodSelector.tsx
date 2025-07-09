@@ -124,26 +124,26 @@ export const PaymentMethodSelector = ({
           )
           
           if (result && validateQRResult(result)) {
-            setCryptoQRData(result)
-            console.log('✅ QR generated successfully:', {
+          setCryptoQRData(result)
+          console.log('✅ QR generated successfully:', {
               method: selectedChild,
               usdAmount: amount,
               cryptoAmount: result.conversionResult?.cryptoAmount,
               formattedAmount: result.conversionResult?.formattedAmount,
               exchangeRate: result.conversionResult?.exchangeRate,
               invoiceId: result.invoiceId || 'N/A'
-            })
-          } else {
-            const errorMsg = result?.error || 'Failed to generate QR code'
-            setQRError(errorMsg)
-            console.error('❌ QR generation failed:', errorMsg)
-          }
-        } catch (error) {
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+          })
+        } else {
+          const errorMsg = result?.error || 'Failed to generate QR code'
           setQRError(errorMsg)
-          console.error('❌ QR generation error:', error)
+          console.error('❌ QR generation failed:', errorMsg)
+        }
+        } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        setQRError(errorMsg)
+        console.error('❌ QR generation error:', error)
         } finally {
-          setIsGeneratingQR(false)
+        setIsGeneratingQR(false)
         }
       }
       
