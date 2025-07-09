@@ -54,7 +54,6 @@ export default function BusinessProfilePage() {
     phone: "",
     adminUsername: "",
     language: "",
-    subscriptionTier: "",
     profilePhoto: "",
     notifications: {
       sales: true,
@@ -83,15 +82,7 @@ export default function BusinessProfilePage() {
     },
     receiptFooter: "",
     returnPolicy: "30",
-    lowStockAlert: "5",
-    autoBackup: true,
-    features: {
-      loyaltyProgram: false,
-      discounts: true,
-      giftCards: false,
-      reservations: false,
-      delivery: false
-    }
+    autoBackup: true
   })
 
   // Load all data from APIs
@@ -147,13 +138,7 @@ export default function BusinessProfilePage() {
                 facebook: "",
                 twitter: ""
               },
-              features: data.businessSetup.features || {
-                loyaltyProgram: false,
-                discounts: true,
-                giftCards: false,
-                reservations: false,
-                delivery: false
-              }
+              receiptFooter: `Thank you for choosing ${data.businessName || 'us'}!`
             }
             setBusinessSettings(businessSetup)
           } else {
@@ -163,8 +148,6 @@ export default function BusinessProfilePage() {
               ...prev,
               businessHours: smartDefaults.businessHours,
               returnPolicy: smartDefaults.returnPolicy,
-              lowStockAlert: smartDefaults.lowStockAlert,
-              features: smartDefaults.features,
               receiptFooter: `Thank you for choosing ${data.businessName || 'us'}!`
             }))
           }
@@ -180,7 +163,6 @@ export default function BusinessProfilePage() {
             phone: admin.phone || "",
             adminUsername: admin.adminUsername || "",
             language: admin.language || "",
-            subscriptionTier: admin.subscriptionTier || "",
             profilePhoto: admin.profilePhoto || "",
             notifications: admin.notifications || {
               sales: true,
@@ -213,15 +195,7 @@ export default function BusinessProfilePage() {
           saturday: { open: "11:00", close: "23:00", closed: false },
           sunday: { open: "12:00", close: "21:00", closed: false }
         },
-        returnPolicy: "0",
-        lowStockAlert: "10",
-        features: {
-          loyaltyProgram: true,
-          discounts: true,
-          giftCards: true,
-          reservations: true,
-          delivery: true
-        }
+        returnPolicy: "0"
       },
       "retail": {
         businessHours: {
@@ -233,15 +207,7 @@ export default function BusinessProfilePage() {
           saturday: { open: "10:00", close: "19:00", closed: false },
           sunday: { open: "12:00", close: "17:00", closed: false }
         },
-        returnPolicy: "30",
-        lowStockAlert: "5",
-        features: {
-          loyaltyProgram: true,
-          discounts: true,
-          giftCards: true,
-          reservations: false,
-          delivery: false
-        }
+        returnPolicy: "30"
       }
     }
     return defaults[businessType as keyof typeof defaults] || defaults["retail"]
@@ -282,17 +248,6 @@ export default function BusinessProfilePage() {
       socialMedia: {
         ...prev.socialMedia,
         [platform]: value
-      }
-    }))
-    setIsSaved(false)
-  }
-
-  const handleFeatureChange = (feature: string, checked: boolean) => {
-    setBusinessSettings(prev => ({
-      ...prev,
-      features: {
-        ...prev.features,
-        [feature]: checked
       }
     }))
     setIsSaved(false)
@@ -390,12 +345,6 @@ export default function BusinessProfilePage() {
     { value: "pt", label: "Portuguese" },
   ]
 
-  const subscriptionTiers = [
-    { value: "free", label: "Free Plan" },
-    { value: "basic", label: "Basic Plan" },
-    { value: "pro", label: "Pro Plan" },
-  ]
-
   if (isInitialLoading) {
     return (
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
@@ -416,7 +365,7 @@ export default function BusinessProfilePage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Business Profile</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your business information, admin settings, and operational preferences
+            Manage your profile information, business details, and operational preferences
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -447,12 +396,12 @@ export default function BusinessProfilePage() {
       </div>
 
       <div className="space-y-6">
-        {/* Admin User Information */}
+        {/* Profile Information */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <User className="h-5 w-5 text-blue-600" />
-              <span>Admin User Information</span>
+              <span>Profile Information</span>
             </CardTitle>
             <CardDescription>
               Personal information and account settings for the primary admin user
@@ -509,7 +458,7 @@ export default function BusinessProfilePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="adminUsername">Admin Username</Label>
                 <Input
@@ -529,21 +478,6 @@ export default function BusinessProfilePage() {
                     {languages.map((lang) => (
                       <SelectItem key={lang.value} value={lang.value}>
                         {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="subscriptionTier">Subscription Plan</Label>
-                <Select value={adminInfo.subscriptionTier} onValueChange={(value) => handleAdminInfoChange('subscriptionTier', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subscriptionTiers.map((tier) => (
-                      <SelectItem key={tier.value} value={tier.value}>
-                        {tier.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -861,7 +795,7 @@ export default function BusinessProfilePage() {
               <Settings className="h-5 w-5 text-blue-600" />
               <span>Operational Settings</span>
             </CardTitle>
-            <CardDescription>Configure business operations and policies</CardDescription>
+            <CardDescription>Configure basic business operations and policies</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -890,65 +824,17 @@ export default function BusinessProfilePage() {
                 />
               </div>
               
-              <div>
-                <Label htmlFor="lowStockAlert">Low Stock Alert (quantity)</Label>
-                <Input
-                  id="lowStockAlert"
-                  type="number"
-                  min="1"
-                  value={businessSettings.lowStockAlert}
-                  onChange={(e) => handleBusinessSettingsChange('lowStockAlert', e.target.value)}
-                  className="mt-1"
+              <div className="flex items-center space-x-3 p-4 rounded-lg border border-border">
+                <Checkbox 
+                  id="autoBackup"
+                  checked={businessSettings.autoBackup}
+                  onCheckedChange={(checked) => handleBusinessSettingsChange('autoBackup', checked ? 'true' : 'false')}
                 />
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-4 rounded-lg border border-border">
-              <Checkbox 
-                id="autoBackup"
-                checked={businessSettings.autoBackup}
-                onCheckedChange={(checked) => handleBusinessSettingsChange('autoBackup', checked ? 'true' : 'false')}
-              />
-              <div>
-                <Label htmlFor="autoBackup" className="font-medium">Enable automatic daily backups</Label>
-                <p className="text-sm text-muted-foreground">Automatically backup your data every night at 2 AM</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Business Features */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Building className="h-5 w-5 text-blue-600" />
-              <span>Business Features</span>
-            </CardTitle>
-            <CardDescription>Enable or disable business features and capabilities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {Object.entries(businessSettings.features).map(([feature, enabled]) => (
-                <div key={feature} className="flex items-center space-x-3 p-4 rounded-lg border border-border">
-                  <Checkbox 
-                    id={feature}
-                    checked={enabled}
-                    onCheckedChange={(checked) => handleFeatureChange(feature, checked as boolean)}
-                  />
-                  <div>
-                    <Label htmlFor={feature} className="font-medium capitalize">
-                      {feature.replace(/([A-Z])/g, ' $1').trim()}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      {feature === 'loyaltyProgram' && 'Customer rewards and points system'}
-                      {feature === 'discounts' && 'Percentage and fixed amount discounts'}
-                      {feature === 'giftCards' && 'Digital gift card sales and redemption'}
-                      {feature === 'reservations' && 'Table and appointment booking'}
-                      {feature === 'delivery' && 'Delivery and pickup options'}
-                    </p>
-                  </div>
+                <div>
+                  <Label htmlFor="autoBackup" className="font-medium">Enable automatic daily backups</Label>
+                  <p className="text-sm text-muted-foreground">Automatically backup your data every night at 2 AM</p>
                 </div>
-              ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -962,7 +848,8 @@ export default function BusinessProfilePage() {
                 <h3 className="font-medium text-blue-900">Profile Information</h3>
                 <p className="text-sm text-blue-800 mt-1">
                   This information was initially collected during your onboarding process and can be updated anytime. 
-                  Changes to business information may require verification for compliance purposes.
+                  For security settings, subscription management, inventory settings, and customer features, 
+                  please visit the respective sections in the admin settings.
                 </p>
               </div>
             </div>

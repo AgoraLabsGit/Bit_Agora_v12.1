@@ -248,7 +248,4 @@ class LightningService {
 }
 
 // Export singleton instance
-export const lightningService = new LightningService()
-
-// Export types for use in other modules
-export type { LightningInvoice, LightningPaymentStatus, LightningServiceConfig } 
+export const lightningService = new LightningService() 

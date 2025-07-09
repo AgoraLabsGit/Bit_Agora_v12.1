@@ -147,23 +147,78 @@
 ## 🚀 Phase 2: Advanced Features (Future)
 *Phase 2 development will NOT begin until Phase 1 is 100% complete*
 
+### 🎯 **NEW FEATURES - Customer Engagement & Gamification**
+
+#### **🏆 Wallet-Based Loyalty System**
+- **Customer Spending Tracking by Wallet Address**
+  - Track Bitcoin, Lightning, and USDT payments by wallet address
+  - Build customer spending history and profiles
+  - Automatic loyalty point accumulation based on payment amounts
+  - Wallet-specific discount levels (Bronze, Silver, Gold tiers)
+  - Privacy-first approach with optional customer identification
+
+- **Loyalty Discount Engine**
+  - Progressive discount percentages based on spending history
+  - Tier-based rewards (5% Bronze, 10% Silver, 15% Gold)
+  - Automatic discount application for returning wallet addresses
+  - Spending milestone rewards and bonus point multipliers
+  - Integration with existing loyalty program settings
+
+#### **⚡ Lightning Payment Lottery System**
+- **Bitcoin Lightning Win-Back Feature**
+  - Customers who pay with Lightning enter automatic lottery
+  - Chance to win full payment refund up to configurable amount (e.g., $50 max)
+  - Configurable lottery odds (default: 1 in 100 Lightning payments)
+  - Instant win notification via Lightning payment confirmation
+  - Admin configuration for maximum win amounts and odds
+
+- **Gamification Elements**
+  - Daily/weekly lottery pools for Lightning payments
+  - Special promotional periods with increased win rates
+  - Win history tracking and customer notifications
+  - Social sharing capabilities for winners (optional)
+  - Integration with POS payment flow for seamless experience
+
+#### **📱 Social Media Engagement Rewards**
+- **Follow-to-Earn Discount System**
+  - QR code links to social media profiles (Instagram, Twitter, TikTok)
+  - Verification system for social media follows
+  - Instant discount codes for verified followers
+  - Configurable discount amounts (e.g., 10% off next purchase)
+  - Integration with existing discount management system
+
+- **Social Media Integration**
+  - Instagram/Twitter/TikTok profile verification
+  - Automated discount code generation
+  - Follow tracking and analytics
+  - Social media ROI measurement
+  - Customer social engagement scoring
+
 ### Advanced Analytics & Reporting
 - Real-time sales analytics and dashboards
 - Detailed transaction reporting with export capabilities  
 - Customer analytics and purchase patterns
 - Tax reporting and compliance features
+- **NEW**: Wallet-based customer journey analytics
+- **NEW**: Lightning lottery performance metrics
+- **NEW**: Social media engagement ROI tracking
 
 ### CRM & Customer Management
 - Customer database and profiles
 - Loyalty programs and rewards systems
 - Customer communication tools
 - Purchase history and preferences
+- **NEW**: Wallet-based customer identification
+- **NEW**: Gamification engagement tracking
+- **NEW**: Social media follower management
 
 ### Multi-Location Support
 - Multiple store/location management
 - Centralized inventory across locations
 - Location-specific reporting and analytics
 - Staff management across multiple sites
+- **NEW**: Cross-location loyalty program synchronization
+- **NEW**: Network-wide Lightning lottery pools
 
 ### Fiat Payment Integration
 - Credit card processing integration

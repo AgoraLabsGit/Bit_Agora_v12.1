@@ -29,7 +29,9 @@ import {
   ArrowLeft,
   Calculator,
   Menu,
-  X
+  X,
+  Crown,
+  Shield
 } from "lucide-react"
 
 interface AdminLayoutProps {
@@ -187,7 +189,35 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           title: 'Admin Users',
           href: '/admin/settings/users',
           icon: <UserCheck className="h-4 w-4" />,
+          priority: 'PHASE_1'
+        },
+        {
+          id: 'security',
+          title: 'Security',
+          href: '/admin/settings/security',
+          icon: <Shield className="h-4 w-4" />,
           badge: 'PRIORITY',
+          priority: 'PHASE_1'
+        },
+        {
+          id: 'subscription',
+          title: 'Subscription',
+          href: '/admin/settings/subscription',
+          icon: <Crown className="h-4 w-4" />,
+          priority: 'PHASE_1'
+        },
+        {
+          id: 'inventory',
+          title: 'Inventory & Products',
+          href: '/admin/settings/inventory',
+          icon: <Package className="h-4 w-4" />,
+          priority: 'PHASE_1'
+        },
+        {
+          id: 'customers',
+          title: 'Customers & Discounts',
+          href: '/admin/settings/customers',
+          icon: <Users className="h-4 w-4" />,
           priority: 'PHASE_1'
         },
         {
@@ -195,7 +225,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           title: 'Feature Management',
           href: '/admin/feature-management',
           icon: <Settings className="h-4 w-4" />,
-          badge: 'PRIORITY',
           priority: 'PHASE_1'
         },
         {

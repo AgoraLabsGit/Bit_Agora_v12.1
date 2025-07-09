@@ -172,15 +172,15 @@ export default function MerchantFeatureManagement() {
   const [showArchived, setShowArchived] = useState(false)
   const [expandedFeatures, setExpandedFeatures] = useState(new Set())
 
-  const toggleFeature = (featureId) => {
+  const toggleFeature = (featureId: string) => {
     console.log(`Toggling feature: ${featureId}`)
   }
 
-  const restoreFeature = (featureId) => {
+  const restoreFeature = (featureId: string) => {
     console.log(`Restoring feature: ${featureId}`)
   }
 
-  const toggleExpanded = (featureId) => {
+  const toggleExpanded = (featureId: string) => {
     const newExpanded = new Set(expandedFeatures)
     if (newExpanded.has(featureId)) {
       newExpanded.delete(featureId)
@@ -190,7 +190,7 @@ export default function MerchantFeatureManagement() {
     setExpandedFeatures(newExpanded)
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 border-green-200'
       case 'archived': return 'bg-orange-100 text-orange-800 border-orange-200'
@@ -199,7 +199,7 @@ export default function MerchantFeatureManagement() {
     }
   }
 
-  const getImpactColor = (impact) => {
+  const getImpactColor = (impact: string) => {
     switch (impact) {
       case 'high': return 'text-red-600'
       case 'medium': return 'text-yellow-600'
@@ -208,7 +208,7 @@ export default function MerchantFeatureManagement() {
     }
   }
 
-  const FeatureCard = ({ feature, categoryKey }) => {
+  const FeatureCard = ({ feature, categoryKey }: { feature: any, categoryKey: string }) => {
     const isExpanded = expandedFeatures.has(feature.id)
     const isArchived = feature.status === 'archived'
     
@@ -279,7 +279,6 @@ export default function MerchantFeatureManagement() {
                 <Switch
                   checked={feature.enabled}
                   onCheckedChange={() => toggleFeature(feature.id)}
-                  size="sm"
                 />
               )}
             </div>
@@ -312,10 +311,10 @@ export default function MerchantFeatureManagement() {
     )
   }
 
-  const categoryData = featureCategories[activeTab]
+  const categoryData = featureCategories[activeTab as keyof typeof featureCategories]
   const totalFeatures = categoryData.features.length
-  const activeFeatures = categoryData.features.filter(f => f.enabled && f.status === 'active').length
-  const archivedFeatures = categoryData.features.filter(f => f.status === 'archived').length
+  const activeFeatures = categoryData.features.filter((f: any) => f.enabled && f.status === 'active').length
+  const archivedFeatures = categoryData.features.filter((f: any) => f.status === 'archived').length
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
