@@ -97,9 +97,9 @@ Docs/04-Architecture/UI-UX-Layout-Guidelines.md
 
 
 
-<<<REVIEW CODE (BEST PRACTICES)>>>
+<<<REVIEW CODE (BEST PRACTICES) then MOVE TO NEXT STEP>>>
 
-Proceed to next step. Make sure the new code and pages follow our development best practices and UI/UX guidelines:
+Make sure the new code and pages follow our development best practices and UI/UX guidelines:
 
 Docs/03-Development/Best-Practices
 Docs/03-Development/Best-Practices/bitagora-specific-patterns.md
@@ -107,12 +107,17 @@ Docs/03-Development/Best-Practices/bitagora-specific-patterns.md
 Docs/03-Development/Best-Practices/React Component Best Practices.md
 Docs/04-Architecture/UI-UX-Layout-Guidelines.md
 
+Then move onto next step in:
+
+Docs/03-Development/Roadmaps/Master Development Roadmap.md
+
+
 
 
 
 <<<LOGS UPDATES>>>
 
-1. Please update our Logs. Confirm todays from internet for correct Date logging (Argentina Time). 
+1. Update our Logs. Confirm todays from internet for correct Date logging (Argentina Time). 
 
 Docs/03-Development/Roadmaps/Master Development Roadmap.md
 Docs/03-Development/Roadmaps/Pages Roadmap

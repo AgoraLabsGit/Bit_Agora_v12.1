@@ -1,13 +1,14 @@
 // /components/pos/payment/CryptoPaymentFlow.tsx
-// Focused crypto payment handling
+// Focused crypto payment handling with proper amount conversion
 
 "use client"
 
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { CryptoQRCode } from '@/components/ui/crypto-qr-code'
-import { PaymentStatusIndicator } from './PaymentStatusIndicator'
+import { PaymentStatusIndicator } from '@/components/pos/payment/PaymentStatusIndicator'
 import { usePaymentStatus } from '@/app/pos/hooks/use-payment-status'
+import { generateCryptoQR, QRData, validateQRData } from '@/lib/payment/qr-generation'
 
 interface CryptoPaymentFlowProps {
   method: string
@@ -26,8 +27,9 @@ export const CryptoPaymentFlow = ({
   onPaymentComplete,
   onBack
 }: CryptoPaymentFlowProps) => {
-  const [paymentQRCode, setPaymentQRCode] = useState<string | null>(null)
-  const [paymentAddress, setPaymentAddress] = useState<string | null>(null)
+  const [qrData, setQRData] = useState<QRData | null>(null)
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false)
+  const [qrError, setQRError] = useState<string | null>(null)
   const [currentPaymentId, setCurrentPaymentId] = useState<string | null>(null)
   const [showStatusMonitoring, setShowStatusMonitoring] = useState(false)
 
@@ -56,36 +58,43 @@ export const CryptoPaymentFlow = ({
     }
   })
 
-  // Generate crypto QR code
+  // Generate crypto QR code with proper amount conversion
   useEffect(() => {
     const generateQR = async () => {
       if (!paymentSettings) return
 
-      let address = ''
-      let qrContent = ''
-      
-      switch (method) {
-        case 'lightning':
-          address = paymentSettings.bitcoinLightningAddress || ''
-          qrContent = address
-          break
-        case 'bitcoin':
-          address = paymentSettings.bitcoinWalletAddress || ''
-          const btcAmount = (amount / 100000000).toFixed(8)
-          qrContent = `bitcoin:${address}?amount=${btcAmount}`
-          break
-        case 'usdt-eth':
-          address = paymentSettings.usdtEthereumWalletAddress || ''
-          qrContent = `ethereum:${address}?amount=${amount}&token=0xdac17f958d2ee523a2206206994597c13d831ec7`
-          break
-        case 'usdt-tron':
-          address = paymentSettings.usdtTronWalletAddress || ''
-          qrContent = `tron:${address}?amount=${amount}&token=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t`
-          break
+      setIsGeneratingQR(true)
+      setQRError(null)
+
+      try {
+        console.log('🔥 Generating QR for:', method, 'USD amount:', amount)
+        
+        const result = await generateCryptoQR(method, amount, paymentSettings, {
+          validateAddresses: true,
+          includeFallbacks: true
+        })
+
+        if (result && validateQRData(result)) {
+          setQRData(result)
+          console.log('✅ QR generated successfully:', {
+            method: result.method,
+            usdAmount: result.amount,
+            cryptoAmount: result.cryptoAmount,
+            formattedAmount: result.formattedCryptoAmount,
+            exchangeRate: result.exchangeRate
+          })
+        } else {
+          const errorMsg = result?.error || 'Failed to generate QR code'
+          setQRError(errorMsg)
+          console.error('❌ QR generation failed:', errorMsg)
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        setQRError(errorMsg)
+        console.error('❌ QR generation error:', error)
+      } finally {
+        setIsGeneratingQR(false)
       }
-      
-      setPaymentAddress(address)
-      setPaymentQRCode(qrContent)
     }
 
     generateQR()
@@ -120,8 +129,54 @@ export const CryptoPaymentFlow = ({
     return response.json()
   }
 
+  const formatCryptoAmount = (qrData: QRData) => {
+    switch (qrData.method) {
+      case 'lightning':
+        return `${qrData.formattedCryptoAmount} sat`
+      case 'bitcoin':
+        return `${qrData.formattedCryptoAmount} BTC`
+      case 'usdt-eth':
+      case 'usdt-tron':
+        return `${qrData.formattedCryptoAmount} USDT`
+      default:
+        return qrData.formattedCryptoAmount
+    }
+  }
+
+  const getMethodDisplayName = (method: string) => {
+    switch (method) {
+      case 'lightning':
+        return 'Lightning Network'
+      case 'bitcoin':
+        return 'Bitcoin'
+      case 'usdt-eth':
+        return 'USDT (Ethereum)'
+      case 'usdt-tron':
+        return 'USDT (Tron)'
+      default:
+        return method
+    }
+  }
+
   return (
     <div className="space-y-4">
+      {/* Payment Amount Display */}
+      <div className="bg-slate-800 rounded-lg p-4 text-center">
+        <div className="text-2xl font-bold text-white mb-2">
+          ${amount.toFixed(2)} USD
+        </div>
+        {qrData && (
+          <div className="text-sm text-slate-300">
+            ≈ {formatCryptoAmount(qrData)}
+            {qrData.exchangeRate > 0 && (
+              <div className="text-xs text-slate-400 mt-1">
+                Rate: ${qrData.exchangeRate.toLocaleString()}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Payment Status Monitoring */}
       {showStatusMonitoring && (
         <PaymentStatusIndicator
@@ -136,14 +191,46 @@ export const CryptoPaymentFlow = ({
         />
       )}
 
+      {/* QR Code Generation Status */}
+      {isGeneratingQR && (
+        <div className="flex items-center justify-center p-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+          <span className="ml-3 text-slate-300">Generating QR code...</span>
+        </div>
+      )}
+
+      {/* QR Generation Error */}
+      {qrError && (
+        <div className="bg-red-900/20 border border-red-500 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="text-red-400 mr-2">❌</div>
+            <div>
+              <div className="text-red-400 font-semibold">QR Generation Error</div>
+              <div className="text-red-300 text-sm">{qrError}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* QR Code Display */}
-      {paymentQRCode && paymentAddress && (
-        <CryptoQRCode
-          paymentMethod={method}
-          address={paymentAddress}
-          amount={amount}
-          qrContent={paymentQRCode}
-        />
+      {qrData && qrData.isValid && (
+        <div>
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {getMethodDisplayName(method)} Payment
+            </h3>
+            <p className="text-sm text-slate-300">
+              Scan with your {getMethodDisplayName(method)} wallet
+            </p>
+          </div>
+          
+          <CryptoQRCode
+            paymentMethod={qrData.method}
+            address={qrData.address}
+            amount={amount}
+            qrContent={qrData.qrContent}
+          />
+        </div>
       )}
 
       {/* Action Buttons */}
@@ -152,7 +239,7 @@ export const CryptoPaymentFlow = ({
           Back
         </Button>
         
-        {!showStatusMonitoring ? (
+        {!showStatusMonitoring && qrData && qrData.isValid ? (
           <Button onClick={handleStartPayment} className="flex-1">
             Start Payment
           </Button>

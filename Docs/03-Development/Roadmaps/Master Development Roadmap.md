@@ -183,3 +183,92 @@
 ---
 
 *This roadmap follows BitAgora's commitment to Phase 1 MVP completion before Phase 2 advancement, ensuring a solid foundation for international markets (Argentina, South America, USA).*
+
+## **Phase 1.1 - URGENT: Crypto QR Generation Fixes** 🚨
+**Target**: 2-3 weeks (Immediate Priority)
+**Status**: 🔥 Critical - Blocking MVP completion
+
+### **Critical Issues Requiring Immediate Fix**
+- [ ] **Dynamic Lightning Invoice Generation**
+  - [ ] Integrate LNBits service for real-time invoices
+  - [ ] Replace static test invoices with USD→satoshi conversion
+  - [ ] Add invoice expiration and status monitoring
+  - [ ] Error handling for Lightning service failures
+
+- [ ] **Real Exchange Rate Integration**
+  - [ ] CoinGecko API integration (primary)
+  - [ ] CoinAPI fallback for production
+  - [ ] 5-minute rate caching implementation
+  - [ ] Fallback rates when APIs fail
+
+- [ ] **Bitcoin BIP21 URI Standards**
+  - [ ] Fix USD→BTC conversion (currently broken)
+  - [ ] Implement proper BIP21 format
+  - [ ] Minimum amount validation (546 satoshis)
+  - [ ] Address validation integration
+
+- [ ] **USDT Base Units Correction**
+  - [ ] Fix microUSDT conversion (6 decimals)
+  - [ ] Correct Ethereum EIP-681 format
+  - [ ] Correct Tron URI format
+  - [ ] Wallet compatibility testing
+
+### **Implementation Dependencies**
+```bash
+# Required new packages
+npm install bolt11 @ln-service/ln-service
+npm install bitcoinjs-lib bech32 ethers tronweb
+npm install multicoin-address-validator bs58check
+```
+
+### **Environment Setup Required**
+```bash
+LNBITS_URL=https://legend.lnbits.com
+LNBITS_API_KEY=production_key
+COINGECKO_API_KEY=optional_premium
+BITCOIN_WALLET_ADDRESS=bc1q_merchant_address
+ETHEREUM_WALLET_ADDRESS=0x_merchant_address
+TRON_WALLET_ADDRESS=T_merchant_address
+```
+
+### **Testing Requirements**
+- [ ] Real wallet compatibility testing (MetaMask, Trust Wallet, etc.)
+- [ ] Payment flow validation with small amounts
+- [ ] Error scenario testing and user feedback
+- [ ] Performance testing under load
+
+**⚠️ CRITICAL PATH**: This work blocks Phase 1 MVP completion. All other Phase 1 features depend on working crypto payments.
+
+**📋 Detailed Plan**: See `Docs/03-Development/Roadmaps/Crypto QR Implementation Plan.md`
+
+---
+
+## **Phase 1.5 - Multi-Currency Support (NEW)**
+**Target**: February 2025
+**Status**: 🔄 Planned
+
+### **Currency Exchange Integration**
+- [ ] **Fiat Exchange Rate Service**
+  - [ ] ARS (Argentine Peso) → USDT conversion
+  - [ ] BRL (Brazilian Real) → USDT conversion  
+  - [ ] UYU (Uruguayan Peso) → USDT conversion
+  - [ ] CLP (Chilean Peso) → USDT conversion
+  - [ ] Real-time rate updates (API integration)
+  - [ ] Rate caching and fallback handling
+
+- [ ] **Multi-Currency POS Interface**
+  - [ ] Currency selector in POS
+  - [ ] Display amounts in local currency + USDT
+  - [ ] Automatic conversion for QR generation
+  - [ ] Regional currency defaults by merchant location
+
+- [ ] **Regional Market Focus**
+  - [ ] Argentina market optimization
+  - [ ] South American payment preferences
+  - [ ] Local currency display standards
+
+### **Dependencies**
+- Complete Phase 1 crypto QR generation fixes
+- Market research on preferred fiat-crypto flows in target regions
+
+---
