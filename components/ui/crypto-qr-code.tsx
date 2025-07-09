@@ -139,10 +139,6 @@ export const CryptoQRCode: React.FC<CryptoQRCodeProps> = ({
           <span className="font-medium">Amount: </span>
           <span className="font-mono text-slate-300">${amount.toFixed(2)}</span>
         </div>
-        
-        <div className="text-xs font-mono bg-slate-700 p-2 rounded border border-slate-600 break-all text-slate-100">
-          {address}
-        </div>
       </div>
 
       {/* Action Buttons */}

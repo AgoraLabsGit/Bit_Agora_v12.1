@@ -96,12 +96,17 @@ Docs/04-Architecture/UI-UX-Layout-Guidelines.md
 
 
 
+
 <<<REVIEW CODE (BEST PRACTICES)>>>
 
 Proceed to next step. Make sure the new code and pages follow our development best practices and UI/UX guidelines:
 
 Docs/03-Development/Best-Practices
+Docs/03-Development/Best-Practices/bitagora-specific-patterns.md
+Docs/03-Development/Best-Practices/bitagora-specific-patterns.md
+Docs/03-Development/Best-Practices/React Component Best Practices.md
 Docs/04-Architecture/UI-UX-Layout-Guidelines.md
+
 
 
 

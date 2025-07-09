@@ -18,7 +18,7 @@ import {
   Receipt,
   ShoppingCart
 } from "lucide-react"
-import { PaymentModalWrapper } from '@/components/pos/payment/PaymentModalWrapper'
+import { PaymentModal } from '@/components/pos/payment/PaymentModal'
 import { TaxCalculator, TaxConfiguration, TaxCalculationResult, formatTaxAmount } from '@/lib/tax-calculation'
 import { ProductCard } from './components/InventoryIndicator'
 import { Product, CartItem, PRODUCT_CATEGORIES, isProductAvailable } from './types/product'
@@ -451,7 +451,7 @@ export default function POSPage() {
       </main>
 
       {/* Payment Modal */}
-      <PaymentModalWrapper 
+      <PaymentModal 
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         amount={total}

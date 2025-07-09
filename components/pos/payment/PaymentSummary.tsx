@@ -59,14 +59,8 @@ export const PaymentSummary = ({
   return (
     <Card className={cn("", className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center justify-between">
-          <span>Payment Summary</span>
-          {methodInfo && (
-            <Badge className={cn("text-xs", methodInfo.color)}>
-              <span className="mr-1">{methodInfo.icon}</span>
-              {paymentMethodName || methodInfo.name}
-            </Badge>
-          )}
+        <CardTitle className="text-lg">
+          Payment Summary
         </CardTitle>
       </CardHeader>
       

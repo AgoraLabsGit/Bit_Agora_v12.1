@@ -1939,3 +1939,39 @@ Date: July 8th, 2025
 Developer: AI Assistant  
 Status: QR Code Image Display & Modular Payment System Enhancement Complete ✅
 
+## 2025-01-26 - Crypto Payment Button Fix - Inline QR Display
+
+### **Issue Identified**
+- Crypto payment buttons (Bitcoin, USDT ETH, USDT TRX) were routing to separate `CryptoPaymentFlow` screen
+- This created unnecessary navigation and inconsistent UX compared to Lightning (which showed inline QR)
+- Users had to click crypto button, then "Start Payment" button to see QR code
+
+### **Root Cause**
+- `PaymentModal.tsx` routing logic was sending all crypto methods to `CryptoPaymentFlow` component
+- `PaymentMethodSelector.tsx` had special `onCryptoSelect` handler that immediately routed to crypto flow
+- This broke the intended single-page inline QR display pattern
+
+### **Solution Implemented**
+1. **Removed crypto flow routing**: Updated `handleStartPayment()` to keep crypto methods inline
+2. **Unified crypto button behavior**: All crypto methods now use `onMethodSelect()` instead of `onCryptoSelect()`
+3. **Cleaned up modal footer**: Removed "Start Payment" button requirement for crypto methods
+4. **Maintained modular architecture**: Kept all components intact, only changed routing logic
+
+### **Technical Changes**
+- `PaymentModal.tsx`: Removed crypto flow routing, cleaned up footer logic
+- `PaymentMethodSelector.tsx`: Removed `onCryptoSelect` handler, unified button behavior
+- `lib/payment/qr-generation.ts`: Cleaned up excessive debug logging
+
+### **Result**
+- ✅ All crypto methods (Lightning, Bitcoin, USDT ETH, USDT TRX) now show QR codes inline
+- ✅ Single-page experience for all crypto payments
+- ✅ No "Start Payment" button needed for crypto methods
+- ✅ Consistent UX across all crypto payment methods
+- ✅ Maintained modular component architecture
+
+### **User Experience Improvement**
+- **Before**: Click crypto button → Click "Start Payment" → Navigate to separate screen → See QR code
+- **After**: Click crypto button → Immediately see QR code inline on same page
+
+This fix significantly improves the payment flow UX while maintaining the modular modal architecture.
+

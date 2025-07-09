@@ -1,32 +1,53 @@
 // /components/pos/payment/PaymentMethodSelector.tsx
-// Payment method selection component
+// Single-page payment method selection with parent-child categories and inline QR display
 
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { CryptoQRCode } from '@/components/ui/crypto-qr-code'
 import { PaymentOption } from '@/hooks/use-payment-settings'
+import { generateCryptoQR, getMethodIcon, getMethodName, QRData } from '@/lib/payment/qr-generation'
 
 interface PaymentMethodSelectorProps {
   paymentOptions: PaymentOption[]
   selectedMethod: string | null
   onMethodSelect: (method: string) => void
+  onCashPayment: () => void
+  paymentSettings: any
+  qrProviders: any[]
+  amount: number
   isLoading?: boolean
   className?: string
+}
+
+type ParentCategory = 'crypto' | 'qr' | 'cash'
+
+interface ParentCategoryInfo {
+  id: ParentCategory
+  name: string
+  icon: string
+  hasOptions: boolean
 }
 
 export const PaymentMethodSelector = ({
   paymentOptions,
   selectedMethod,
   onMethodSelect,
+  onCashPayment,
+  paymentSettings,
+  qrProviders,
+  amount,
   isLoading = false,
   className
 }: PaymentMethodSelectorProps) => {
-  const [activeTab, setActiveTab] = useState<string>('crypto')
+  const [selectedParent, setSelectedParent] = useState<ParentCategory>('crypto')
+  const [selectedChild, setSelectedChild] = useState<string | null>(null)
+  const [selectedQRProvider, setSelectedQRProvider] = useState<any>(null)
+  const [cryptoQRData, setCryptoQRData] = useState<QRData | null>(null)
 
   // Group options by category
   const groupedOptions = paymentOptions.reduce((acc, option) => {
@@ -37,31 +58,147 @@ export const PaymentMethodSelector = ({
     return acc
   }, {} as Record<string, PaymentOption[]>)
 
-  // Get available categories
-  const categories = Object.keys(groupedOptions)
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'crypto': return 'Crypto'
-      case 'qr': return 'QR Code'
-      case 'cash': return 'Cash'
-      case 'card': return 'Card'
-      default: return category
+  // Define parent categories with smaller, more compact design
+  const parentCategories: ParentCategoryInfo[] = [
+    { 
+      id: 'crypto', 
+      name: 'Crypto', 
+      icon: '₿', 
+      hasOptions: groupedOptions.crypto && groupedOptions.crypto.length > 0
+    },
+    { 
+      id: 'qr', 
+      name: 'QR Code', 
+      icon: '📱', 
+      hasOptions: groupedOptions.qr && groupedOptions.qr.length > 0
+    },
+    { 
+      id: 'cash', 
+      name: 'Cash', 
+      icon: '💵', 
+      hasOptions: groupedOptions.cash && groupedOptions.cash.length > 0
+    }
+  ]
+
+  // Auto-select first available crypto method on mount
+  useEffect(() => {
+    if (groupedOptions.crypto && groupedOptions.crypto.length > 0) {
+      const firstCrypto = groupedOptions.crypto[0]
+      setSelectedChild(firstCrypto.id)
+      // Don't auto-route to crypto flow, just set the selected method
+      onMethodSelect(firstCrypto.id)
+    }
+  }, [groupedOptions.crypto, onMethodSelect])
+
+  // Initialize QR provider for QR category
+  useEffect(() => {
+    const enabledProviders = qrProviders.filter(p => p.enabled && p.qrCodeImageData)
+    if (enabledProviders.length > 0) {
+      setSelectedQRProvider(enabledProviders[0])
+    }
+  }, [qrProviders])
+
+
+
+  // Generate crypto QR when crypto method is selected
+  useEffect(() => {
+    if (selectedParent === 'crypto' && selectedChild && paymentSettings) {
+      console.log('🔥 Generating QR for:', selectedChild)
+      generateCryptoQR(selectedChild, amount, paymentSettings).then((result) => {
+        setCryptoQRData(result)
+        if (result) {
+          console.log('✅ QR generated successfully')
+        } else {
+          console.log('❌ QR generation failed')
+        }
+      }).catch((error) => {
+        console.error('❌ QR generation error:', error)
+        setCryptoQRData(null)
+      })
+    } else {
+      setCryptoQRData(null)
+    }
+  }, [selectedParent, selectedChild, amount, paymentSettings])
+
+  // Handle parent category selection
+  const handleParentSelection = (parent: ParentCategory) => {
+    setSelectedParent(parent)
+    setSelectedChild(null)
+    setCryptoQRData(null)
+    
+    if (parent === 'cash') {
+      onCashPayment()
+    } else {
+      // Auto-select first child method for crypto/qr
+      const childMethods = getChildMethods(parent)
+      if (childMethods.length > 0) {
+        const firstChild = childMethods[0].id
+        setSelectedChild(firstChild)
+        // Don't auto-route to flow, just set the selected method for inline display
+        onMethodSelect(firstChild)
+      }
     }
   }
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'crypto': return '₿'
-      case 'qr': return '📱'
-      case 'cash': return '💵'
-      case 'card': return '💳'
-      default: return '💰'
-    }
+  // Handle child method selection
+  const handleChildSelection = (methodId: string) => {
+    console.log('🔥 BUTTON CLICKED:', methodId)
+    
+    setSelectedChild(methodId)
+    
+    // All methods now stay inline for QR display
+    // No routing to separate flows needed
+    console.log('🔥 INLINE QR DISPLAY MODE')
+    onMethodSelect(methodId)
   }
 
-  // Handle method selection
-  const handleMethodSelect = (method: string) => {
-    onMethodSelect(method)
+
+
+  // Get child methods for selected parent
+  const getChildMethods = (parent: ParentCategory): PaymentOption[] => {
+    if (!parent) return []
+    
+    // For crypto category, ensure all methods are available with fallbacks
+    if (parent === 'crypto') {
+      const cryptoMethods: PaymentOption[] = [
+        {
+          id: 'lightning',
+          name: 'Lightning',
+          category: 'crypto' as const,
+          icon: '⚡',
+          description: 'Instant Bitcoin payments via Lightning Network',
+          enabled: true
+        },
+        {
+          id: 'bitcoin',
+          name: 'Bitcoin',
+          category: 'crypto' as const,
+          icon: '₿',
+          description: 'Bitcoin on-chain transaction',
+          enabled: true
+        },
+        {
+          id: 'usdt-eth',
+          name: 'USDT (ETH)',
+          category: 'crypto' as const,
+          icon: '$',
+          description: 'USDT stablecoin on Ethereum network',
+          enabled: true
+        },
+        {
+          id: 'usdt-tron',
+          name: 'USDT (TRX)',
+          category: 'crypto' as const,
+          icon: '$',
+          description: 'USDT stablecoin on Tron network',
+          enabled: true
+        }
+      ]
+      
+      return cryptoMethods
+    }
+    
+    return groupedOptions[parent] || []
   }
 
   if (isLoading) {
@@ -75,7 +212,8 @@ export const PaymentMethodSelector = ({
     )
   }
 
-  if (categories.length === 0) {
+  const enabledParentCategories = parentCategories.filter(cat => cat.hasOptions)
+  if (enabledParentCategories.length === 0) {
     return (
       <div className={cn("space-y-4", className)}>
         <div className="text-center py-8">
@@ -89,75 +227,128 @@ export const PaymentMethodSelector = ({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Category Tabs */}
-        <TabsList className="grid w-full grid-cols-4">
-          {categories.map((category) => (
-            <TabsTrigger 
-              key={category} 
-              value={category}
-              className="flex items-center gap-2"
+    <div className={cn("space-y-6", className)}>
+      {/* Parent Categories - Always Visible (Compact Design) */}
+      <div>
+        <h3 className="text-base font-semibold mb-4 text-foreground">Payment Category</h3>
+        <div className="flex gap-2 flex-wrap">
+          {parentCategories.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedParent === category.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleParentSelection(category.id)}
+              disabled={!category.hasOptions}
+              className="h-10 px-4 flex items-center gap-2 min-w-[100px]"
             >
-              <span>{getCategoryIcon(category)}</span>
-              <span className="hidden sm:inline">{getCategoryLabel(category)}</span>
-            </TabsTrigger>
+              <span className="text-sm">{category.icon}</span>
+              <span className="text-sm">{category.name}</span>
+            </Button>
           ))}
-        </TabsList>
+        </div>
+      </div>
 
-        {/* Method Selection for Each Category */}
-        {categories.map((category) => (
-          <TabsContent key={category} value={category} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {groupedOptions[category].map((option) => (
-                <Card
-                  key={option.id}
-                  className={cn(
-                    "cursor-pointer transition-all duration-200 hover:shadow-md",
-                    selectedMethod === option.id
-                      ? "ring-2 ring-primary border-primary bg-primary/5"
-                      : "hover:border-primary/50"
-                  )}
-                  onClick={() => handleMethodSelect(option.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{option.icon}</span>
-                        <span className="font-medium text-sm">{option.name}</span>
-                      </div>
-                      {selectedMethod === option.id && (
-                        <Badge variant="default" className="text-xs">
-                          Selected
-                        </Badge>
-                      )}
+      {/* Child Methods - Show for Selected Parent (Compact Design) */}
+      {selectedParent && selectedParent !== 'cash' && (
+        <div>
+          <h3 className="text-base font-semibold mb-4 text-foreground">
+            {selectedParent === 'crypto' ? 'Cryptocurrency' : 'Payment Method'}
+          </h3>
+          <div className="flex gap-2 flex-wrap">
+            {getChildMethods(selectedParent).map((option) => (
+              <Button
+                key={option.id}
+                variant={selectedChild === option.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleChildSelection(option.id)}
+                disabled={false}
+                className="h-8 px-3 flex items-center gap-2 min-w-[80px]"
+              >
+                <span className="text-xs">{getMethodIcon(option.id)}</span>
+                <span className="text-xs">{getMethodName(option.id)}</span>
+              </Button>
+            ))}
+
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Display Area - Inline Display */}
+      {selectedChild && (
+        <div>
+          <h3 className="text-base font-semibold mb-4 text-foreground">Payment QR Code</h3>
+          <Card className="p-6">
+            <CardContent className="p-0">
+              
+              {/* Crypto QR Code Display */}
+              {selectedParent === 'crypto' && cryptoQRData && (
+                <CryptoQRCode
+                  paymentMethod={cryptoQRData.method}
+                  address={cryptoQRData.address}
+                  amount={amount}
+                  qrContent={cryptoQRData.qrContent}
+                />
+              )}
+
+              {/* Crypto QR Code - Not Configured */}
+              {selectedParent === 'crypto' && !cryptoQRData && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Payment method not configured</p>
+                  <p className="text-sm mt-1 text-muted-foreground/80">Configure {getMethodName(selectedChild)} in settings</p>
+                </div>
+              )}
+
+              {/* QR Provider Selection and Display */}
+              {selectedParent === 'qr' && (
+                <div className="text-center space-y-4">
+                  {/* QR Provider Selection */}
+                  {qrProviders.filter(p => p.enabled && p.qrCodeImageData).length > 1 && (
+                    <div className="flex gap-2 justify-center mb-4">
+                      {qrProviders.filter(p => p.enabled && p.qrCodeImageData).map(provider => (
+                        <Button
+                          key={provider.id}
+                          variant={selectedQRProvider?.id === provider.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedQRProvider(provider)}
+                          className="h-8 px-3 text-xs"
+                        >
+                          {provider.customName || provider.providerName}
+                        </Button>
+                      ))}
                     </div>
-                    
-                    {option.description && (
-                      <p className="text-xs text-muted-foreground">
-                        {option.description}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  )}
 
-            {/* Quick Start Button */}
-            {selectedMethod && groupedOptions[category].some(opt => opt.id === selectedMethod) && (
-              <div className="pt-4">
-                <Button 
-                  onClick={() => handleMethodSelect(selectedMethod)}
-                  className="w-full"
-                  size="lg"
-                >
-                  Continue with {groupedOptions[category].find(opt => opt.id === selectedMethod)?.name}
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+                  {/* QR Code Image Display */}
+                  {selectedQRProvider?.qrCodeImageData ? (
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="bg-white p-4 rounded-lg border">
+                        <img 
+                          src={selectedQRProvider.qrCodeImageData} 
+                          alt={`${selectedQRProvider.providerName} QR Code`}
+                          className="w-48 h-48 object-contain"
+                        />
+                      </div>
+                      <div className="text-sm text-muted-foreground/80 space-y-1">
+                        <p className="font-medium text-foreground">
+                          {selectedQRProvider.customName || selectedQRProvider.providerName}
+                        </p>
+                        <p>Scan with mobile payment app</p>
+                        <p className="font-semibold text-foreground">Amount: ${amount.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No QR code available</p>
+                      <p className="text-sm text-muted-foreground/80">Configure QR providers in settings</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 } 

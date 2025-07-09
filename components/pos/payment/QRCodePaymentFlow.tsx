@@ -23,12 +23,13 @@ export const QRCodePaymentFlow = ({
   onPaymentComplete,
   onBack
 }: QRCodePaymentFlowProps) => {
-  const [selectedProvider, setSelectedProvider] = useState(null)
-  const [currentPaymentId, setCurrentPaymentId] = useState(null)
+  const [selectedProvider, setSelectedProvider] = useState<any>(null)
+  const [currentPaymentId, setCurrentPaymentId] = useState<string | null>(null)
   const [showStatusMonitoring, setShowStatusMonitoring] = useState(false)
 
   const {
     status,
+    lastUpdate,
     isMonitoring,
     startMonitoring,
     stopMonitoring,
@@ -99,6 +100,7 @@ export const QRCodePaymentFlow = ({
       {showStatusMonitoring && (
         <PaymentStatusIndicator
           status={status}
+          lastUpdate={lastUpdate}
           isMonitoring={isMonitoring}
           onCancel={() => {
             stopMonitoring()
