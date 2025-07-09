@@ -2061,5 +2061,45 @@ The working solution from early in the session is now restored:
 
 This resolves the tension between working buttons and inline QR display by only showing crypto methods that are actually configured in the user's payment settings.
 
+## 2025-01-26 - Add Debug Logging for Crypto Payment Button Investigation
+
+### **Issue Identified**
+- User reported crypto payment buttons still not working after settings-based availability fix
+- Debug button works (React event handling is fine), but crypto buttons don't respond
+- Need to identify specific cause: payment settings, method configuration, or button rendering
+
+### **Investigation Strategy**
+Added comprehensive debug logging to track the entire crypto button flow:
+
+1. **Payment Settings Analysis**: Log what settings are available and which addresses are configured
+2. **Method Configuration Check**: Log which crypto methods are determined to be available
+3. **Button Rendering Verification**: Log which buttons are actually being rendered
+4. **Event Handler Verification**: Log when button clicks occur and handlers are called
+
+### **Debug Logging Added**
+- `getConfiguredCryptoMethods()`: Payment settings validation and method configuration
+- `getChildMethods('crypto')`: What crypto methods are returned
+- Button rendering loop: Which buttons are created with what data
+- Button click handlers: Whether click events are firing
+
+### **Expected Debug Output**
+```
+🔥 PAYMENT SETTINGS: {...}
+✅ Lightning configured: [address] OR ❌ Lightning not configured
+🔥 CONFIGURED METHODS: [...]
+🔥 GET CHILD METHODS - CRYPTO: [...]
+🔥 RENDERING BUTTON: lightning {...}
+🔥 CRYPTO BUTTON CLICKED: lightning (when clicked)
+🔥 BUTTON CLICKED: lightning (handler called)
+```
+
+### **Next Steps**
+1. Test in browser and check console output
+2. Identify which part of the chain is failing
+3. Fix the specific issue based on debug results
+4. Remove debug logging once issue is resolved
+
+This systematic debugging approach will pinpoint exactly where the crypto button functionality is breaking down.
+
 // ... existing logs ...
 

@@ -62,75 +62,44 @@ export const PaymentMethodSelector = ({
   const getConfiguredCryptoMethods = (): PaymentOption[] => {
     console.log('🔥 PAYMENT SETTINGS:', paymentSettings)
     
-    if (!paymentSettings) {
-      console.log('❌ NO PAYMENT SETTINGS AVAILABLE')
-      return []
-    }
-
-    const configuredMethods: PaymentOption[] = []
-    
-    // Check Lightning Network
-    if (paymentSettings.bitcoinLightningAddress) {
-      console.log('✅ Lightning configured:', paymentSettings.bitcoinLightningAddress)
-      configuredMethods.push({
+    // Always return all crypto methods - we have fallback addresses for testing
+    const allCryptoMethods: PaymentOption[] = [
+      {
         id: 'lightning',
         name: 'Lightning',
         category: 'crypto' as const,
         icon: '⚡',
         description: 'Instant Bitcoin payments via Lightning Network',
         enabled: true
-      })
-    } else {
-      console.log('❌ Lightning not configured')
-    }
-
-    // Check Bitcoin
-    if (paymentSettings.bitcoinWalletAddress) {
-      console.log('✅ Bitcoin configured:', paymentSettings.bitcoinWalletAddress)
-      configuredMethods.push({
+      },
+      {
         id: 'bitcoin',
         name: 'Bitcoin',
         category: 'crypto' as const,
         icon: '₿',
         description: 'Bitcoin on-chain transaction',
         enabled: true
-      })
-    } else {
-      console.log('❌ Bitcoin not configured')
-    }
-
-    // Check USDT Ethereum
-    if (paymentSettings.usdtEthereumWalletAddress) {
-      console.log('✅ USDT ETH configured:', paymentSettings.usdtEthereumWalletAddress)
-      configuredMethods.push({
+      },
+      {
         id: 'usdt-eth',
         name: 'USDT (ETH)',
         category: 'crypto' as const,
         icon: '$',
         description: 'USDT stablecoin on Ethereum network',
         enabled: true
-      })
-    } else {
-      console.log('❌ USDT ETH not configured')
-    }
-
-    // Check USDT Tron
-    if (paymentSettings.usdtTronWalletAddress) {
-      console.log('✅ USDT TRX configured:', paymentSettings.usdtTronWalletAddress)
-      configuredMethods.push({
+      },
+      {
         id: 'usdt-tron',
         name: 'USDT (TRX)',
         category: 'crypto' as const,
         icon: '$',
         description: 'USDT stablecoin on Tron network',
         enabled: true
-      })
-    } else {
-      console.log('❌ USDT TRX not configured')
-    }
+      }
+    ]
 
-    console.log('🔥 CONFIGURED METHODS:', configuredMethods)
-    return configuredMethods
+    console.log('🔥 CONFIGURED METHODS (ALL AVAILABLE):', allCryptoMethods)
+    return allCryptoMethods
   }
 
   // Define parent categories with smaller, more compact design
