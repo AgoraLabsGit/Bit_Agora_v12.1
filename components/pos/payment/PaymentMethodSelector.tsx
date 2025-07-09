@@ -58,13 +58,70 @@ export const PaymentMethodSelector = ({
     return acc
   }, {} as Record<string, PaymentOption[]>)
 
+  // Get configured crypto methods based on payment settings
+  const getConfiguredCryptoMethods = (): PaymentOption[] => {
+    if (!paymentSettings) return []
+
+    const configuredMethods: PaymentOption[] = []
+    
+    // Check Lightning Network
+    if (paymentSettings.bitcoinLightningAddress) {
+      configuredMethods.push({
+        id: 'lightning',
+        name: 'Lightning',
+        category: 'crypto' as const,
+        icon: '⚡',
+        description: 'Instant Bitcoin payments via Lightning Network',
+        enabled: true
+      })
+    }
+
+    // Check Bitcoin
+    if (paymentSettings.bitcoinWalletAddress) {
+      configuredMethods.push({
+        id: 'bitcoin',
+        name: 'Bitcoin',
+        category: 'crypto' as const,
+        icon: '₿',
+        description: 'Bitcoin on-chain transaction',
+        enabled: true
+      })
+    }
+
+    // Check USDT Ethereum
+    if (paymentSettings.usdtEthereumWalletAddress) {
+      configuredMethods.push({
+        id: 'usdt-eth',
+        name: 'USDT (ETH)',
+        category: 'crypto' as const,
+        icon: '$',
+        description: 'USDT stablecoin on Ethereum network',
+        enabled: true
+      })
+    }
+
+    // Check USDT Tron
+    if (paymentSettings.usdtTronWalletAddress) {
+      configuredMethods.push({
+        id: 'usdt-tron',
+        name: 'USDT (TRX)',
+        category: 'crypto' as const,
+        icon: '$',
+        description: 'USDT stablecoin on Tron network',
+        enabled: true
+      })
+    }
+
+    return configuredMethods
+  }
+
   // Define parent categories with smaller, more compact design
   const parentCategories: ParentCategoryInfo[] = [
     { 
       id: 'crypto', 
       name: 'Crypto', 
       icon: '₿', 
-      hasOptions: true // Always available - crypto methods are hardcoded
+      hasOptions: getConfiguredCryptoMethods().length > 0 // Only available if crypto methods are configured
     },
     { 
       id: 'qr', 
@@ -82,10 +139,13 @@ export const PaymentMethodSelector = ({
 
   // Auto-select first available crypto method on mount
   useEffect(() => {
-    // Auto-select lightning as the default crypto method
-    setSelectedChild('lightning')
-    onMethodSelect('lightning')
-  }, [onMethodSelect])
+    const configuredCryptoMethods = getConfiguredCryptoMethods()
+    if (configuredCryptoMethods.length > 0) {
+      const firstCrypto = configuredCryptoMethods[0]
+      setSelectedChild(firstCrypto.id)
+      onMethodSelect(firstCrypto.id)
+    }
+  }, [paymentSettings, onMethodSelect])
 
   // Initialize QR provider for QR category
   useEffect(() => {
@@ -155,44 +215,9 @@ export const PaymentMethodSelector = ({
   const getChildMethods = (parent: ParentCategory): PaymentOption[] => {
     if (!parent) return []
     
-    // For crypto category, ensure all methods are available with fallbacks
+    // For crypto category, use only configured methods
     if (parent === 'crypto') {
-      const cryptoMethods: PaymentOption[] = [
-        {
-          id: 'lightning',
-          name: 'Lightning',
-          category: 'crypto' as const,
-          icon: '⚡',
-          description: 'Instant Bitcoin payments via Lightning Network',
-          enabled: true
-        },
-        {
-          id: 'bitcoin',
-          name: 'Bitcoin',
-          category: 'crypto' as const,
-          icon: '₿',
-          description: 'Bitcoin on-chain transaction',
-          enabled: true
-        },
-        {
-          id: 'usdt-eth',
-          name: 'USDT (ETH)',
-          category: 'crypto' as const,
-          icon: '$',
-          description: 'USDT stablecoin on Ethereum network',
-          enabled: true
-        },
-        {
-          id: 'usdt-tron',
-          name: 'USDT (TRX)',
-          category: 'crypto' as const,
-          icon: '$',
-          description: 'USDT stablecoin on Tron network',
-          enabled: true
-        }
-      ]
-      
-      return cryptoMethods
+      return getConfiguredCryptoMethods()
     }
     
     return groupedOptions[parent] || []
@@ -258,26 +283,12 @@ export const PaymentMethodSelector = ({
                 variant={selectedChild === option.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleChildSelection(option.id)}
-                disabled={false}
                 className="h-8 px-3 flex items-center gap-2 min-w-[80px]"
               >
                 <span className="text-xs">{getMethodIcon(option.id)}</span>
                 <span className="text-xs">{getMethodName(option.id)}</span>
               </Button>
             ))}
-
-            {/* Debug test button */}
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => {
-                console.log('🔥 DEBUG BUTTON CLICKED - BUTTON HANDLERS WORKING')
-                alert('Debug button clicked - handlers are working!')
-              }}
-              className="h-8 px-3 text-xs"
-            >
-              Debug Test
-            </Button>
           </div>
         </div>
       )}
