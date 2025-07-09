@@ -1,0 +1,508 @@
+# ✅ BitAgora Payment Solutions Implementation Checklist
+
+## 🎯 **Implementation Strategy Overview**
+
+This checklist guides the phased implementation of BitAgora's complete payment stack, prioritizing the most impactful features first while building toward comprehensive regional coverage.
+
+---
+
+## 🚀 **MVP 1: Lightning + Strike & Static/Custom QR Code Uploads**
+**Target Timeline**: 3-4 weeks  
+**Priority**: 🔥 CRITICAL - Solves current Lightning errors + enables universal QR support
+
+### **📦 Dependencies & Setup**
+- [ ] Install required packages
+  ```bash
+  npm install axios@^1.10.0 bolt11@^1.4.1 zod@^3.23.0
+  npm install multer@^1.4.5 @aws-sdk/client-s3
+  # OR npm install cloudinary@^1.41.0
+  ```
+- [ ] Set up environment variables
+  ```bash
+  STRIKE_API_KEY=your_strike_api_key
+  STRIKE_ENVIRONMENT=sandbox
+  AWS_S3_BUCKET=bitagora-qr-codes
+  # OR CLOUDINARY_CLOUD_NAME=your_cloud
+  ```
+- [ ] Apply for Strike Business API access
+- [ ] Configure file storage (AWS S3 or Cloudinary)
+
+### **⚡ Lightning Integration (Strike API)**
+- [ ] Create `lib/strike-service.ts`
+  - [ ] Lightning invoice generation with proper amounts
+  - [ ] Payment status checking
+  - [ ] Merchant account management
+  - [ ] Error handling and timeouts
+- [ ] Create `lib/merchant-lightning.ts`
+  - [ ] Merchant-specific Lightning account setup
+  - [ ] Invoice generation per merchant
+  - [ ] Payment status monitoring
+  - [ ] Dashboard data aggregation
+- [ ] Update `lib/payment/qr-generation.ts`
+  - [ ] Replace static Lightning fallback with Strike API
+  - [ ] Dynamic invoice generation
+  - [ ] bolt11 validation integration
+  - [ ] Proper USD→satoshi conversion
+- [ ] Create Lightning payment status API
+  - [ ] `app/api/lightning/status/route.ts`
+  - [ ] Real-time payment checking
+  - [ ] Webhook handling (future)
+
+### **📱 Custom QR Upload System**
+- [ ] Create `lib/custom-qr-service.ts`
+  - [ ] File upload handling
+  - [ ] QR image storage
+  - [ ] Merchant QR configuration
+  - [ ] Payment instructions management
+- [ ] Create upload API endpoints
+  - [ ] `app/api/qr/upload/route.ts`
+  - [ ] `app/api/qr/[merchantId]/route.ts`
+  - [ ] File validation and security
+  - [ ] Metadata storage
+- [ ] Build admin QR management UI
+  - [ ] QR code upload interface
+  - [ ] Payment provider selection
+  - [ ] Instructions configuration
+  - [ ] QR code preview and testing
+- [ ] Update payment display logic
+  - [ ] Custom QR display component
+  - [ ] Payment instructions overlay
+  - [ ] Manual amount entry guidance
+
+### **🔄 Payment Router Updates**
+- [ ] Update `lib/payment-router.ts`
+  - [ ] Lightning routing via Strike
+  - [ ] Custom QR routing
+  - [ ] Error handling and fallbacks
+  - [ ] Method availability logic
+- [ ] Update payment selection UI
+  - [ ] Lightning payment option
+  - [ ] Custom QR payment option
+  - [ ] Method switching interface
+  - [ ] Loading states and error handling
+
+### **🧪 Testing & Validation**
+- [ ] Lightning payment testing
+  - [ ] Generate test invoices ($0.50)
+  - [ ] Test with Phoenix, Blue Wallet, Strike app
+  - [ ] Verify amount accuracy and settlement
+  - [ ] Test error scenarios
+- [ ] Custom QR testing
+  - [ ] Upload various QR formats
+  - [ ] Test display and instructions
+  - [ ] Verify file security measures
+  - [ ] Test with different payment providers
+- [ ] Integration testing
+  - [ ] Payment method switching
+  - [ ] Error handling and recovery
+  - [ ] Performance testing
+  - [ ] Security validation
+
+### **✅ MVP 1 Success Criteria**
+- [ ] Lightning payments work without "Unknown character" errors
+- [ ] Merchants can generate dynamic Lightning invoices
+- [ ] Merchants can upload QR codes from any payment provider
+- [ ] All payments route correctly without errors
+- [ ] Basic admin interface for QR management is functional
+
+---
+
+## 💰 **MVP 2: Mercado Pago API Integration**
+**Target Timeline**: 2-3 weeks  
+**Priority**: 🟡 HIGH - Enables LATAM fiat payments with amount pre-filling
+
+### **📦 Dependencies & Setup**
+- [ ] Install Mercado Pago SDK
+  ```bash
+  npm install mercadopago@^2.0.0
+  ```
+- [ ] Set up Mercado Pago environment
+  ```bash
+  MERCADO_PAGO_ACCESS_TOKEN=your_mp_token
+  MERCADO_PAGO_CLIENT_ID=your_mp_client_id
+  MERCADO_PAGO_CLIENT_SECRET=your_mp_client_secret
+  MERCADO_PAGO_ENVIRONMENT=sandbox
+  ```
+- [ ] Create Mercado Pago developer account
+- [ ] Configure webhook endpoints for payment notifications
+
+### **🌎 Mercado Pago Service Implementation**
+- [ ] Create `lib/mercado-pago-service.ts`
+  - [ ] Payment preference creation
+  - [ ] Dynamic QR generation with amounts
+  - [ ] Payment status checking
+  - [ ] Multi-country support (AR, BR, MX, CL, PE)
+- [ ] Create merchant configuration system
+  - [ ] Mercado Pago account linking
+  - [ ] Country/region settings
+  - [ ] Payment method preferences
+  - [ ] Fee configuration
+
+### **🔗 API Integration**
+- [ ] Create Mercado Pago API endpoints
+  - [ ] `app/api/mercado-pago/create-payment/route.ts`
+  - [ ] `app/api/mercado-pago/check-status/route.ts`
+  - [ ] `app/api/mercado-pago/webhook/route.ts`
+- [ ] Implement payment creation flow
+  - [ ] Preference generation with amount
+  - [ ] QR code creation
+  - [ ] Expiration handling
+  - [ ] Error management
+
+### **🎨 UI Implementation**
+- [ ] Add Mercado Pago to payment methods
+  - [ ] Payment option in selection UI
+  - [ ] Regional availability logic
+  - [ ] QR code display with amount
+  - [ ] Payment instructions in local language
+- [ ] Create admin configuration interface
+  - [ ] Mercado Pago account setup
+  - [ ] Country selection
+  - [ ] Payment method configuration
+  - [ ] Testing interface
+
+### **🔄 Payment Router Integration**
+- [ ] Update `lib/payment-router.ts`
+  - [ ] Mercado Pago routing logic
+  - [ ] Regional availability checking
+  - [ ] Fallback to custom QR if unavailable
+- [ ] Add regional payment method logic
+  - [ ] Country-based method availability
+  - [ ] Currency conversion handling
+  - [ ] Local payment preferences
+
+### **🧪 Testing & Validation**
+- [ ] Mercado Pago payment testing
+  - [ ] Test in Argentina, Brazil, Mexico
+  - [ ] Verify amount pre-filling works
+  - [ ] Test payment completion flow
+  - [ ] Validate webhook notifications
+- [ ] Multi-country testing
+  - [ ] Currency handling
+  - [ ] Local payment methods
+  - [ ] Language localization
+  - [ ] Regulatory compliance
+
+### **✅ MVP 2 Success Criteria**
+- [ ] Merchants can generate Mercado Pago QR codes with amounts
+- [ ] Customers see pre-filled amounts in Mercado Pago app
+- [ ] Payment status updates work in real-time
+- [ ] Multi-country support functions correctly
+- [ ] Webhook integration for payment notifications works
+
+---
+
+## 💵 **MVP 3: Fiat QR (Square) + Stripe Fallback**
+**Target Timeline**: 2-3 weeks  
+**Priority**: 🟡 HIGH - Enables global fiat QR payments without hardware
+
+### **📦 Dependencies & Setup**
+- [ ] Install payment provider SDKs
+  ```bash
+  npm install squareup@^3.0.0
+  npm install stripe@^14.0.0
+  npm install @stripe/terminal-js
+  ```
+- [ ] Set up payment provider environments
+  ```bash
+  SQUARE_APPLICATION_ID=your_square_app_id
+  SQUARE_ACCESS_TOKEN=your_square_access_token
+  SQUARE_ENVIRONMENT=sandbox
+  STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
+  STRIPE_SECRET_KEY=sk_test_your_stripe_secret
+  ```
+- [ ] Create Square developer account
+- [ ] Create Stripe account with Terminal access
+
+### **💳 Square QR Code Implementation**
+- [ ] Create `lib/square-qr-service.ts`
+  - [ ] QR code generation for USD payments
+  - [ ] Payment request creation
+  - [ ] Customer checkout flow
+  - [ ] Payment status monitoring
+- [ ] Implement Square payment flow
+  - [ ] QR generation with amount
+  - [ ] Customer scan → web checkout
+  - [ ] Payment processing
+  - [ ] Receipt generation
+
+### **🔗 Stripe Payment Links & Mobile Terminal**
+- [ ] Create `lib/stripe-service.ts`
+  - [ ] Payment link generation
+  - [ ] QR code creation for payment links
+  - [ ] Mobile Terminal SDK integration
+  - [ ] NFC payment acceptance
+- [ ] Implement Stripe fallback system
+  - [ ] Payment link as backup for Square
+  - [ ] Mobile NFC when QR not suitable
+  - [ ] Error handling and switching logic
+
+### **📱 Mobile NFC Terminal Implementation**
+- [ ] Create mobile terminal service
+  - [ ] Stripe Terminal SDK integration
+  - [ ] Phone NFC capability detection
+  - [ ] Contactless payment acceptance
+  - [ ] Apple Pay / Google Pay support
+- [ ] Build mobile terminal UI
+  - [ ] NFC payment interface
+  - [ ] Payment amount display
+  - [ ] Transaction completion flow
+  - [ ] Error handling and retry logic
+
+### **🔄 Payment Router Integration**
+- [ ] Update payment router for fiat methods
+  - [ ] Square QR routing
+  - [ ] Stripe payment link routing
+  - [ ] Mobile NFC routing
+  - [ ] Intelligent fallback logic
+- [ ] Add global fiat payment availability
+  - [ ] Regional payment method selection
+  - [ ] Currency support
+  - [ ] Fee disclosure
+
+### **🎨 UI Implementation**
+- [ ] Add fiat QR payment options
+  - [ ] Square QR payment method
+  - [ ] Stripe payment link option
+  - [ ] Mobile NFC payment option
+  - [ ] Method recommendation logic
+- [ ] Create fiat payment display
+  - [ ] QR code with payment instructions
+  - [ ] Amount confirmation
+  - [ ] Payment status updates
+  - [ ] Receipt delivery options
+
+### **🧪 Testing & Validation**
+- [ ] Square QR payment testing
+  - [ ] QR code generation and scanning
+  - [ ] Payment flow completion
+  - [ ] Various payment methods (cards, banks)
+  - [ ] Error scenarios and handling
+- [ ] Stripe payment testing
+  - [ ] Payment link generation and usage
+  - [ ] Mobile NFC with various devices
+  - [ ] Fallback scenario testing
+  - [ ] Settlement verification
+- [ ] Integration testing
+  - [ ] Payment method fallbacks
+  - [ ] Cross-provider compatibility
+  - [ ] Performance under load
+
+### **✅ MVP 3 Success Criteria**
+- [ ] Merchants can generate USD QR codes for card payments
+- [ ] Customers can pay via QR scan without hardware
+- [ ] Mobile phones work as NFC payment terminals
+- [ ] Stripe provides reliable fallback for Square issues
+- [ ] All fiat payments settle correctly to merchant accounts
+
+---
+
+## 🌎 **MVP 4: Regional QR Payments (PIX, Regional Banks, etc)**
+**Target Timeline**: 3-4 weeks  
+**Priority**: 🟢 MEDIUM - Completes regional coverage for specific markets
+
+### **📦 Dependencies & Setup**
+- [ ] Install regional payment SDKs
+  ```bash
+  npm install node-pix@^1.0.0        # Brazil PIX
+  npm install codi-api@^1.0.0        # Mexico CoDi (if available)
+  # Regional bank API packages as needed
+  ```
+- [ ] Set up regional payment environments
+  ```bash
+  PIX_PROVIDER_API_KEY=your_pix_provider_key
+  PIX_ENVIRONMENT=sandbox
+  CODI_API_KEY=your_codi_api_key
+  REGIONAL_BANK_API_KEY=your_bank_api_key
+  ```
+- [ ] Research and establish regional payment provider relationships
+
+### **🇧🇷 Brazil PIX Integration**
+- [ ] Create `lib/pix-service.ts`
+  - [ ] PIX QR code generation with amounts
+  - [ ] PIX key management
+  - [ ] Instant payment processing
+  - [ ] Transaction status monitoring
+- [ ] Implement PIX payment flow
+  - [ ] QR generation with PIX code
+  - [ ] Bank app integration
+  - [ ] Real-time confirmation
+  - [ ] Receipt and reconciliation
+
+### **🇲🇽 Mexico CoDi Integration**
+- [ ] Create `lib/codi-service.ts`
+  - [ ] CoDi QR generation
+  - [ ] Bank integration
+  - [ ] Payment processing
+  - [ ] Status tracking
+- [ ] Implement CoDi payment flow
+  - [ ] QR code with amount
+  - [ ] Mexican bank app compatibility
+  - [ ] Payment confirmation
+  - [ ] Transaction reporting
+
+### **🏦 Regional Bank QR Integration**
+- [ ] Create `lib/regional-bank-service.ts`
+  - [ ] Multi-bank API support
+  - [ ] Country-specific implementations
+  - [ ] QR generation standards
+  - [ ] Payment processing flows
+- [ ] Implement bank-specific integrations
+  - [ ] Argentina bank QR codes
+  - [ ] Chile bank integration
+  - [ ] Peru bank connectivity
+  - [ ] Colombia bank support
+
+### **🔄 Advanced Payment Router**
+- [ ] Complete payment router implementation
+  - [ ] Full regional method support
+  - [ ] Intelligent method recommendation
+  - [ ] Currency and fee optimization
+  - [ ] Comprehensive fallback logic
+- [ ] Add regional availability logic
+  - [ ] Country-based method filtering
+  - [ ] Merchant preference weighting
+  - [ ] Customer app detection
+  - [ ] Optimal method selection
+
+### **🌐 Multi-Country Support**
+- [ ] Implement country-specific features
+  - [ ] Currency conversion
+  - [ ] Local language support
+  - [ ] Regulatory compliance
+  - [ ] Tax calculation integration
+- [ ] Create regional configuration system
+  - [ ] Country detection
+  - [ ] Method availability mapping
+  - [ ] Local payment preferences
+  - [ ] Compliance requirements
+
+### **🎨 Advanced UI Implementation**
+- [ ] Complete payment method selection
+  - [ ] Regional method availability
+  - [ ] Method recommendation engine
+  - [ ] Payment amount optimization
+  - [ ] User preference learning
+- [ ] Create regional payment displays
+  - [ ] Country-specific QR codes
+  - [ ] Local payment instructions
+  - [ ] Currency display options
+  - [ ] Payment status in local language
+
+### **🧪 Comprehensive Testing**
+- [ ] PIX payment testing (Brazil)
+  - [ ] QR generation and scanning
+  - [ ] Bank app integration
+  - [ ] Instant payment confirmation
+  - [ ] Settlement verification
+- [ ] CoDi payment testing (Mexico)
+  - [ ] Mexican bank app compatibility
+  - [ ] Payment flow completion
+  - [ ] Error handling
+  - [ ] Reconciliation accuracy
+- [ ] Regional bank testing
+  - [ ] Multi-country functionality
+  - [ ] Bank-specific features
+  - [ ] Cross-border capabilities
+  - [ ] Compliance validation
+- [ ] End-to-end testing
+  - [ ] Complete payment stack testing
+  - [ ] Multi-region functionality
+  - [ ] Performance optimization
+  - [ ] Security verification
+
+### **✅ MVP 4 Success Criteria**
+- [ ] Brazil merchants can accept PIX payments with instant settlement
+- [ ] Mexico merchants can accept CoDi payments
+- [ ] Regional bank QR codes work in target countries
+- [ ] Payment router intelligently recommends optimal methods
+- [ ] Complete regional coverage for LATAM markets achieved
+
+---
+
+## 🔧 **Cross-MVP Implementation Tasks**
+
+### **🏗️ Infrastructure & Architecture**
+- [ ] Create unified payment configuration system
+- [ ] Implement merchant onboarding workflow
+- [ ] Build payment method management dashboard
+- [ ] Create comprehensive error handling system
+- [ ] Implement payment analytics and reporting
+
+### **🛡️ Security & Compliance**
+- [ ] Implement payment data encryption
+- [ ] Add API rate limiting and security
+- [ ] Create audit logging system
+- [ ] Ensure PCI compliance for card data
+- [ ] Implement fraud detection basics
+
+### **📊 Analytics & Monitoring**
+- [ ] Create payment success rate monitoring
+- [ ] Implement settlement tracking
+- [ ] Build merchant payment analytics
+- [ ] Add performance monitoring
+- [ ] Create payment method optimization reports
+
+### **📱 Mobile & Responsive Design**
+- [ ] Optimize payment UI for mobile devices
+- [ ] Implement responsive QR code displays
+- [ ] Create mobile-first payment flows
+- [ ] Test on various screen sizes
+- [ ] Optimize for touch interactions
+
+### **🌐 Internationalization**
+- [ ] Add multi-language support for payment flows
+- [ ] Implement currency conversion displays
+- [ ] Create region-specific payment instructions
+- [ ] Add local payment method descriptions
+- [ ] Implement timezone-aware payment processing
+
+---
+
+## 📈 **Success Metrics & KPIs**
+
+### **Technical Metrics**
+- [ ] Payment success rate > 99% across all methods
+- [ ] Average payment completion time < 30 seconds
+- [ ] QR code generation time < 2 seconds
+- [ ] API response time < 500ms
+- [ ] System uptime > 99.9%
+
+### **Business Metrics**
+- [ ] Merchant adoption rate of new payment methods
+- [ ] Customer payment method preferences by region
+- [ ] Average transaction value by payment type
+- [ ] Merchant satisfaction scores
+- [ ] Payment processing cost reduction
+
+### **User Experience Metrics**
+- [ ] Payment completion rate by method
+- [ ] Time to complete payment by method
+- [ ] Error rate and resolution time
+- [ ] Customer support ticket reduction
+- [ ] Payment method switching frequency
+
+---
+
+## 🎯 **Implementation Timeline Summary**
+
+| MVP | Duration | Priority | Key Deliverable |
+|-----|----------|----------|-----------------|
+| **MVP 1** | 3-4 weeks | 🔥 CRITICAL | Lightning + Custom QR working |
+| **MVP 2** | 2-3 weeks | 🟡 HIGH | Mercado Pago with amount pre-fill |
+| **MVP 3** | 2-3 weeks | 🟡 HIGH | Global fiat QR + mobile NFC |
+| **MVP 4** | 3-4 weeks | 🟢 MEDIUM | Complete regional coverage |
+
+**Total Timeline**: 10-14 weeks for complete payment stack implementation
+
+---
+
+## 🚀 **Next Steps**
+
+1. **Begin MVP 1 immediately** - Focus on Lightning Strike integration
+2. **Set up development environment** with all required accounts
+3. **Create testing protocols** for each payment method
+4. **Establish merchant feedback loop** for validation
+5. **Plan integration with existing BitAgora features**
+
+**This phased approach ensures BitAgora can start solving payment problems immediately while building toward comprehensive global coverage.**

@@ -183,6 +183,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           priority: 'PHASE_1'
         },
         {
+          id: 'admin-users',
+          title: 'Admin Users',
+          href: '/admin/settings/users',
+          icon: <UserCheck className="h-4 w-4" />,
+          badge: 'PRIORITY',
+          priority: 'PHASE_1'
+        },
+        {
+          id: 'feature-management',
+          title: 'Feature Management',
+          href: '/admin/feature-management',
+          icon: <Settings className="h-4 w-4" />,
+          badge: 'PRIORITY',
+          priority: 'PHASE_1'
+        },
+        {
           id: 'notifications',
           title: 'Notifications',
           href: '/admin/settings/notifications',

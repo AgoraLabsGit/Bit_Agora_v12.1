@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { CryptoQRCode } from '@/components/ui/crypto-qr-code'
 import { PaymentOption } from '@/hooks/use-payment-settings'
 import { generateCryptoQR, QRData, validateQRData, getMethodIcon, getMethodName } from '@/lib/payment/qr-generation'
+import FeatureFlagService, { useFeatureFlag } from '@/lib/feature-flags'
 
 interface PaymentMethodSelectorProps {
   paymentOptions: PaymentOption[]
@@ -51,47 +52,70 @@ export const PaymentMethodSelector = ({
   const [isGeneratingQR, setIsGeneratingQR] = useState(false)
   const [qrError, setQRError] = useState<string | null>(null)
 
-  // Get configured crypto methods based on payment settings
+  // Get configured crypto methods based on feature flags and payment settings
   const getConfiguredCryptoMethods = useCallback((): PaymentOption[] => {
     console.log('🔥 PAYMENT SETTINGS:', paymentSettings)
     
-    // Temporarily disable Lightning until LNBits is configured
-    const allCryptoMethods: PaymentOption[] = [
-      {
+    const allCryptoMethods: PaymentOption[] = []
+    
+    // Bitcoin payments (always enabled - core feature)
+    if (FeatureFlagService.isEnabled('BITCOIN_PAYMENTS')) {
+      allCryptoMethods.push({
         id: 'bitcoin',
         name: 'Bitcoin',
         category: 'crypto' as const,
         icon: '₿',
         description: 'Bitcoin on-chain transaction',
         enabled: true
-      },
-      {
-        id: 'usdt-eth',
-        name: 'USDT (ETH)',
-        category: 'crypto' as const,
-        icon: '$',
-        description: 'USDT stablecoin on Ethereum network',
-        enabled: true
-      },
-      {
-        id: 'usdt-tron',
-        name: 'USDT (TRX)',
-        category: 'crypto' as const,
-        icon: '$',
-        description: 'USDT stablecoin on Tron network',
-        enabled: true
-      },
-      {
+      })
+    }
+    
+    // USDT payments (always enabled - core feature)
+    if (FeatureFlagService.isEnabled('USDT_PAYMENTS')) {
+      allCryptoMethods.push(
+        {
+          id: 'usdt-eth',
+          name: 'USDT (ETH)',
+          category: 'crypto' as const,
+          icon: '$',
+          description: 'USDT stablecoin on Ethereum network',
+          enabled: true
+        },
+        {
+          id: 'usdt-tron',
+          name: 'USDT (TRX)',
+          category: 'crypto' as const,
+          icon: '$',
+          description: 'USDT stablecoin on Tron network',
+          enabled: true
+        }
+      )
+    }
+    
+    // Lightning payments (feature flagged)
+    if (FeatureFlagService.isEnabled('LIGHTNING_PAYMENTS')) {
+      allCryptoMethods.push({
         id: 'lightning',
         name: 'Lightning',
         category: 'crypto' as const,
         icon: '⚡',
-        description: 'Setting up LNBits...',
-        enabled: false // Temporarily disabled until LNBits setup
-      }
-    ]
-
-    console.log('🔥 CONFIGURED METHODS:', allCryptoMethods)
+        description: 'Instant Bitcoin payments',
+        enabled: true
+      })
+    } else if (FeatureFlagService.isArchived('LIGHTNING_PAYMENTS')) {
+      // Show archived feature with appropriate message
+      const lightningFeature = FeatureFlagService.getFeature('LIGHTNING_PAYMENTS')
+      allCryptoMethods.push({
+        id: 'lightning',
+        name: 'Lightning',
+        category: 'crypto' as const,
+        icon: '⚡',
+        description: lightningFeature?.archiveReason || 'Coming Soon',
+        enabled: false
+      })
+    }
+    
+    console.log('🔥 CONFIGURED METHODS (with feature flags):', allCryptoMethods)
     return allCryptoMethods.filter(method => method.enabled) // Only return enabled methods
   }, [paymentSettings])
 

@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CreditCard, Wallet, AlertTriangle, RefreshCw, Clock } from "lucide-react"
+import { CreditCard, Wallet, AlertTriangle, RefreshCw } from "lucide-react"
 
 // BitAgora Payment Settings - Following new architecture patterns
 import { usePaymentSettings } from './hooks/use-payment-settings'
 import { handleBitAgoraError } from '@/lib/errors'
+import { useFeatureFlag } from '@/lib/feature-flags'
 
 // New modular components
 import { PaymentMethodCard } from './components/PaymentMethodCard'
@@ -23,6 +24,9 @@ import {
 } from './components/ErrorBoundary'
 
 export default function PaymentMethodsPage() {
+  // Feature flag for credit card payments
+  const { isEnabled: creditCardEnabled, isArchived: creditCardArchived, feature: creditCardFeature } = useFeatureFlag('CREDIT_CARD_PAYMENTS')
+  
   // Using our new custom hook following BitAgora patterns
   const {
     formData,
@@ -167,29 +171,55 @@ export default function PaymentMethodsPage() {
               onEnabledChange={(enabled) => handleCheckboxChange('acceptCash', enabled)}
             />
 
-            {/* Card Payments */}
-            <PaymentMethodCard
-              title="Card Payments"
-              description="Credit/debit card processing with Stripe, PayPal, and Square"
-              icon={CreditCard}
-              enabled={false}
-              onEnabledChange={() => {}}
-              status="coming-soon"
-              statusText="Coming Soon in Phase 2"
-            >
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Coming Soon in Phase 2</p>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Credit/debit card processing with Stripe, PayPal, and Square will be available in Phase 2 of our development roadmap. 
-                      For now, focus on cash and regional QR payments for your MVP.
-                    </p>
+            {/* Card Payments - Only show when enabled (minimal UI) */}
+            {creditCardEnabled && (
+              <PaymentMethodCard
+                title="Card Payments"
+                description="Credit/debit card processing with Stripe, PayPal, and Square"
+                icon={CreditCard}
+                enabled={creditCardEnabled}
+                onEnabledChange={(enabled) => handleCheckboxChange('acceptCards', enabled)}
+              >
+                <div className="space-y-4">
+                  {/* Credit card configuration */}
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800 dark:text-green-200">Credit Card Processing Enabled</p>
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          Configure your Stripe, PayPal, and Square integrations for credit and debit card payments.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Stripe Configuration */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Stripe API Key</label>
+                      <input 
+                        type="password" 
+                        placeholder="sk_live_..." 
+                        className="w-full px-3 py-2 border rounded-md"
+                        disabled 
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Live Stripe secret key</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">PayPal Client ID</label>
+                      <input 
+                        type="text" 
+                        placeholder="PayPal Client ID..." 
+                        className="w-full px-3 py-2 border rounded-md"
+                        disabled 
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">PayPal REST API Client ID</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </PaymentMethodCard>
+              </PaymentMethodCard>
+            )}
           </PaymentMethodErrorBoundary>
 
           {/* Cryptocurrency Payments with Error Boundary */}
