@@ -1,8 +1,111 @@
-# BitAgora React Component Best Practices
-## Code Quality & Architecture Standards
+# React Component Best Practices
 
-*Created: 2025-01-08 | Version: 1.0*  
-*Based on Payment Settings Audit Feedback*
+## Critical React Pitfalls - NEVER DO THIS!
+
+### ⚠️ **CRITICAL WARNING: useEffect Dependency Array Hell**
+
+**NEVER include event handlers in useEffect dependency arrays unless absolutely necessary!**
+
+```typescript
+// ❌ WRONG - This creates an infinite loop!
+const handleMethodSelect = (method: string) => {
+  setSelectedMethod(method)
+}
+
+useEffect(() => {
+  setSelectedMethod('default')
+  handleMethodSelect('default') // This triggers the effect again!
+}, [handleMethodSelect]) // ← This dependency causes infinite loop!
+
+// Button click → handleMethodSelect → useEffect → reset to default → repeat forever
+```
+
+```typescript
+// ✅ CORRECT - Remove event handler dependencies
+useEffect(() => {
+  if (!selectedMethod) { // Only set if nothing selected
+    setSelectedMethod('default')
+    handleMethodSelect('default')
+  }
+}, []) // Empty dependency array = runs once only
+
+// OR use useCallback to memoize the handler
+const handleMethodSelect = useCallback((method: string) => {
+  setSelectedMethod(method)
+}, [])
+```
+
+**Real Example from BitAgora Crypto Payment Bug:**
+- Crypto buttons were "working" but immediately resetting to Lightning
+- useEffect had `onMethodSelect` in dependency array
+- Every button click triggered useEffect which reset the selection
+- **Solution**: Remove dependency, add guard condition, run once only
+
+### 🔥 **Other Critical React Rules**
+
+1. **State Updates Are Async**: Never assume state is updated immediately
+2. **Event Handler Stability**: Use useCallback for handlers passed to children
+3. **Effect Cleanup**: Always clean up subscriptions and timers
+4. **Key Prop Stability**: Don't use array indices as keys for dynamic lists
+
+## Standard Component Patterns
+
+### Component Structure
+```typescript
+export const MyComponent = ({ prop1, prop2 }: Props) => {
+  // 1. State declarations
+  const [state, setState] = useState(initial)
+  
+  // 2. Refs
+  const ref = useRef<HTMLElement>(null)
+  
+  // 3. Custom hooks
+  const { data, loading } = useCustomHook()
+  
+  // 4. Memoized values
+  const memoizedValue = useMemo(() => computation, [deps])
+  
+  // 5. Callbacks (use useCallback for stability)
+  const handleClick = useCallback(() => {
+    // Handler logic
+  }, [deps])
+  
+  // 6. Effects (be careful with dependencies!)
+  useEffect(() => {
+    // Effect logic
+    return cleanup // Always return cleanup if needed
+  }, [deps])
+  
+  // 7. Early returns
+  if (loading) return <Spinner />
+  if (error) return <Error />
+  
+  // 8. Render
+  return <div>...</div>
+}
+```
+
+### Event Handlers
+```typescript
+// ✅ Good
+const handleSubmit = useCallback((data: FormData) => {
+  onSubmit(data)
+}, [onSubmit])
+
+// ❌ Bad - recreated every render
+const handleSubmit = (data: FormData) => {
+  onSubmit(data)
+}
+```
+
+### State Updates
+```typescript
+// ✅ Good - functional update
+setCount(prev => prev + 1)
+
+// ❌ Bad - may use stale state
+setCount(count + 1)
+```
 
 ---
 

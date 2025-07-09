@@ -126,13 +126,15 @@ export const PaymentMethodSelector = ({
 
   // Auto-select first available crypto method on mount
   useEffect(() => {
-    const configuredCryptoMethods = getConfiguredCryptoMethods()
-    if (configuredCryptoMethods.length > 0) {
-      const firstCrypto = configuredCryptoMethods[0]
-      setSelectedChild(firstCrypto.id)
-      onMethodSelect(firstCrypto.id)
+    if (!selectedChild) { // Only set if nothing selected
+      const configuredCryptoMethods = getConfiguredCryptoMethods()
+      if (configuredCryptoMethods.length > 0) {
+        const firstCrypto = configuredCryptoMethods[0]
+        setSelectedChild(firstCrypto.id)
+        onMethodSelect(firstCrypto.id)
+      }
     }
-  }, [paymentSettings, onMethodSelect])
+  }, []) // Remove dependencies to only run once
 
   // Initialize QR provider for QR category
   useEffect(() => {
@@ -187,13 +189,12 @@ export const PaymentMethodSelector = ({
   // Handle child method selection
   const handleChildSelection = (methodId: string) => {
     console.log('🔥 BUTTON CLICKED:', methodId)
+    console.log('🔥 CURRENT SELECTED:', selectedChild)
     
     setSelectedChild(methodId)
-    
-    // All methods now stay inline for QR display
-    // No routing to separate flows needed
-    console.log('🔥 INLINE QR DISPLAY MODE')
     onMethodSelect(methodId)
+    
+    console.log('🔥 AFTER CLICK - SHOULD BE:', methodId)
   }
 
 
