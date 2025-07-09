@@ -52,29 +52,18 @@ export const generateCryptoQR = async (
 
     switch (method) {
       case 'lightning':
-        address = paymentSettings?.bitcoinLightningAddress || (options.includeFallbacks ? fallbackAddresses.lightning : '')
-        
-        // Validate Lightning invoice if available
-        if (options.validateAddresses && address) {
-          const validation = validateLightningInvoice(address)
-          if (!validation.isValid) {
-            error = `Invalid Lightning invoice: ${validation.error}`
-            isValid = false
-          }
+        // Lightning is temporarily disabled until LNBits setup is complete
+        return {
+          address: '',
+          qrContent: '',
+          method,
+          amount: usdAmount,
+          cryptoAmount: 0,
+          formattedCryptoAmount: '0',
+          exchangeRate: 0,
+          isValid: false,
+          error: 'Lightning payments temporarily disabled - LNBits setup in progress'
         }
-
-        // Convert USD to satoshis for Lightning
-        conversionResult = await cryptoExchangeService.convertUSDToLightning(usdAmount)
-        
-        if (!conversionResult.success) {
-          error = conversionResult.error
-          isValid = false
-        }
-
-        // For now, use the address directly (in production, generate dynamic invoice)
-        // TODO: Implement dynamic Lightning invoice generation
-        qrContent = address
-        break
 
       case 'bitcoin':
         address = paymentSettings?.bitcoinWalletAddress || (options.includeFallbacks ? fallbackAddresses.bitcoin : '')

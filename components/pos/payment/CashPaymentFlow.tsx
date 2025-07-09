@@ -10,7 +10,13 @@ import { CashTenderingModal } from '@/components/ui/cash-tendering-modal'
 interface CashPaymentFlowProps {
   amount: number
   cartItems: any[]
-  onPaymentComplete: () => void
+  onPaymentComplete: (transactionData?: {
+    transactionId: string
+    paymentMethod: string
+    paymentStatus: string
+    amountTendered?: number
+    change?: number
+  }) => void
   onBack: () => void
 }
 
@@ -42,7 +48,13 @@ export const CashPaymentFlow = ({
       })
       
       setShowCashModal(false)
-      onPaymentComplete()
+      onPaymentComplete({
+        transactionId,
+        paymentMethod: 'cash',
+        paymentStatus: 'completed',
+        amountTendered,
+        change
+      })
       
     } catch (error) {
       console.error('Error completing cash payment:', error)

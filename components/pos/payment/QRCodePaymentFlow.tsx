@@ -12,7 +12,13 @@ interface QRCodePaymentFlowProps {
   amount: number
   cartItems: any[]
   qrProviders: any[]
-  onPaymentComplete: () => void
+  onPaymentComplete: (transactionData?: {
+    transactionId: string
+    paymentMethod: string
+    paymentStatus: string
+    amountTendered?: number
+    change?: number
+  }) => void
   onBack: () => void
 }
 
@@ -39,7 +45,13 @@ export const QRCodePaymentFlow = ({
     paymentMethod: 'qr-code',
     onPaymentComplete: async (transactionId) => {
       await createTransactionRecord(transactionId)
-      setTimeout(onPaymentComplete, 2000)
+      setTimeout(() => {
+        onPaymentComplete({
+          transactionId,
+          paymentMethod: 'qr-code',
+          paymentStatus: 'completed'
+        })
+      }, 2000)
     }
   })
 

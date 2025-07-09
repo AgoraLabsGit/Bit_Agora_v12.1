@@ -19,6 +19,7 @@ import {
   ShoppingCart
 } from "lucide-react"
 import { PaymentModal } from '@/components/pos/payment/PaymentModal'
+import { TransactionReceipt } from './components/TransactionReceipt'
 import { TaxCalculator, TaxConfiguration, TaxCalculationResult, formatTaxAmount } from '@/lib/tax-calculation'
 import { ProductCard } from './components/InventoryIndicator'
 import { Product, CartItem, PRODUCT_CATEGORIES, isProductAvailable } from './types/product'
@@ -51,6 +52,18 @@ export default function POSPage() {
   const [customDescription, setCustomDescription] = useState('')
   const [taxConfig, setTaxConfig] = useState<TaxConfiguration | null>(null)
   const [taxCalculator, setTaxCalculator] = useState<TaxCalculator | null>(null)
+  
+  // Transaction completion state
+  const [completedTransaction, setCompletedTransaction] = useState<{
+    id: string
+    items: CartItem[]
+    total: number
+    paymentMethod: string
+    paymentStatus: string
+    completedAt: Date
+    taxCalculation: TaxCalculationResult
+  } | null>(null)
+  const [showReceipt, setShowReceipt] = useState(false)
 
   // Fetch products and tax settings from API
   useEffect(() => {
@@ -205,9 +218,47 @@ export default function POSPage() {
 
   const total = taxCalculation.total
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = (transactionData?: {
+    transactionId: string
+    paymentMethod: string
+    paymentStatus: string
+    amountTendered?: number
+    change?: number
+  }) => {
+    if (transactionData) {
+      // Create completed transaction record
+      const completedTx = {
+        id: transactionData.transactionId,
+        items: [...cartItems],
+        total,
+        paymentMethod: transactionData.paymentMethod,
+        paymentStatus: transactionData.paymentStatus,
+        completedAt: new Date(),
+        taxCalculation
+      }
+      
+      setCompletedTransaction(completedTx)
+      setShowReceipt(true)
+      setCartItems([])
+      setShowPaymentModal(false)
+    } else {
+      // Fallback for basic completion
+      setCartItems([])
+      setShowPaymentModal(false)
+    }
+  }
+
+  // Handle new transaction (reset receipt state)
+  const handleNewTransaction = () => {
+    setCompletedTransaction(null)
+    setShowReceipt(false)
     setCartItems([])
-    setShowPaymentModal(false)
+  }
+
+  // Handle receipt close
+  const handleReceiptClose = () => {
+    setShowReceipt(false)
+    // Keep transaction data for potential reprint
   }
 
   // Handle custom amount entry
@@ -525,6 +576,24 @@ export default function POSPage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Transaction Receipt */}
+      {showReceipt && completedTransaction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <TransactionReceipt
+            transactionId={completedTransaction.id}
+            items={completedTransaction.items}
+            total={completedTransaction.total}
+            paymentMethod={completedTransaction.paymentMethod}
+            paymentStatus={completedTransaction.paymentStatus}
+            completedAt={completedTransaction.completedAt}
+            taxCalculation={completedTransaction.taxCalculation}
+            taxConfig={taxConfig || undefined}
+            onClose={handleReceiptClose}
+            onNewTransaction={handleNewTransaction}
+          />
         </div>
       )}
     </div>

@@ -36,7 +36,7 @@ export const CryptoQRCode: React.FC<CryptoQRCodeProps> = ({
         
         // Generate QR code with better options
         const qrOptions = {
-          width: 256,
+          width: 200,
           margin: 2,
           color: {
             dark: '#000000',
@@ -112,18 +112,18 @@ export const CryptoQRCode: React.FC<CryptoQRCodeProps> = ({
   };
 
   return (
-    <div className={`bg-slate-800 rounded-lg border border-slate-700 p-4 text-center ${className}`}>
+    <div className={`bg-slate-800 rounded-lg border border-slate-700 p-3 text-center ${className}`}>
       {/* QR Code Display */}
-      <div className="bg-white p-3 rounded-lg inline-block mb-3">
+      <div className="bg-white p-2 rounded-lg inline-block mb-2">
         {isGenerating ? (
-          <div className="w-48 h-48 bg-gray-100 flex items-center justify-center">
+          <div className="w-40 h-40 bg-gray-100 flex items-center justify-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
           </div>
         ) : (
           <img 
             src={qrCodeDataUrl} 
             alt={`${getPaymentMethodName()} QR Code`}
-            className="w-48 h-48"
+            className="w-40 h-40"
           />
         )}
       </div>
@@ -133,21 +133,13 @@ export const CryptoQRCode: React.FC<CryptoQRCodeProps> = ({
         Scan with {getPaymentMethodName()} wallet
       </p>
 
-      {/* Payment Details */}
-      <div className="space-y-1 mb-3">
-        <div className="text-xs text-slate-400">
-          <span className="font-medium">Amount: </span>
-          <span className="font-mono text-slate-300">${amount.toFixed(2)}</span>
-        </div>
-      </div>
-
       {/* Action Buttons */}
       <div className="flex gap-1 justify-center">
         <Button
           variant="outline"
           size="sm"
           onClick={handleCopyAddress}
-          className="text-xs bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 h-8 px-2"
+          className="text-xs bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 h-7 px-2"
         >
           <Copy className="w-3 h-3 mr-1" />
           Copy
@@ -157,7 +149,7 @@ export const CryptoQRCode: React.FC<CryptoQRCodeProps> = ({
           variant="outline"
           size="sm"
           onClick={handleDownloadQR}
-          className="text-xs bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 h-8 px-2"
+          className="text-xs bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 h-7 px-2"
           disabled={isGenerating}
         >
           <Download className="w-3 h-3 mr-1" />

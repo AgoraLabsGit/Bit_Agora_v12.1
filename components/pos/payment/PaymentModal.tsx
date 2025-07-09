@@ -20,7 +20,13 @@ interface PaymentModalProps {
   onClose: () => void
   amount: number
   cartItems: CartItem[]
-  onPaymentComplete?: () => void
+  onPaymentComplete?: (transactionData?: {
+    transactionId: string
+    paymentMethod: string
+    paymentStatus: string
+    amountTendered?: number
+    change?: number
+  }) => void
   taxCalculation?: TaxCalculationResult
   taxConfig?: TaxConfiguration
 }
@@ -73,8 +79,14 @@ export const PaymentModal = ({
   }
 
   // Handle payment completion
-  const handlePaymentComplete = () => {
-    onPaymentComplete?.()
+  const handlePaymentComplete = (transactionData?: {
+    transactionId: string
+    paymentMethod: string
+    paymentStatus: string
+    amountTendered?: number
+    change?: number
+  }) => {
+    onPaymentComplete?.(transactionData)
     onClose()
   }
 
@@ -111,24 +123,27 @@ export const PaymentModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+      <div className="bg-background rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">{getFlowTitle()}</h2>
+          <div className="flex-1"></div>
+          <div className="flex-1 text-center">
+            <h2 className="text-lg font-semibold">{getFlowTitle()}</h2>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-8 w-8"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex-1 flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 h-[calc(90vh-120px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 h-[calc(85vh-130px)]">
           {/* Left Column - Payment Selection and QR Display OR Flow */}
           <div className="lg:col-span-2 p-6 bg-background overflow-y-auto max-h-full">
             {currentFlow === 'selection' && (
@@ -176,23 +191,22 @@ export const PaymentModal = ({
           </div>
 
           {/* Right Column - Payment Summary (Full-Height Grey Background) */}
-          <div className="lg:col-span-1 bg-muted/20 border-l border-border p-6 min-h-full flex items-start justify-center">
-            <div className="w-full max-w-sm">
-              <PaymentSummary
-                amount={amount}
-                cartItems={cartItems}
-                selectedMethod={selectedMethod}
-                paymentMethodName={getSelectedMethodName() || undefined}
-                taxCalculation={taxCalculation}
-                taxConfig={taxConfig}
-                showItemDetails={true}
-              />
-            </div>
+          <div className="lg:col-span-1 bg-muted/20 border-l border-border p-6 flex flex-col min-h-0">
+            <PaymentSummary
+              amount={amount}
+              cartItems={cartItems}
+              selectedMethod={selectedMethod}
+              paymentMethodName={getSelectedMethodName() || undefined}
+              taxCalculation={taxCalculation}
+              taxConfig={taxConfig}
+              showItemDetails={true}
+              className="flex-1 min-h-0"
+            />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 bg-muted/20">
+        <div className="border-t p-4 pb-6 bg-muted/20">
           <div className="flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
               {currentFlow === 'selection' ? (
@@ -202,7 +216,7 @@ export const PaymentModal = ({
               )}
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={onClose} size="sm">
                 Cancel
               </Button>
               
@@ -213,6 +227,7 @@ export const PaymentModal = ({
                 (selectedMethod === 'qr-code' || qrProviders.some(p => p.id === selectedMethod)) && (
                   <Button 
                     onClick={handleStartPayment}
+                    size="sm"
                     className="min-w-[120px]"
                   >
                     Start Payment

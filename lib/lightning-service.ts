@@ -1,0 +1,254 @@
+// BitAgora Lightning Service - LNBits Integration
+// Handles dynamic Lightning invoice generation and payment monitoring
+
+import { cryptoExchangeService } from './crypto-exchange-service'
+
+export interface LightningInvoice {
+  payment_request: string
+  payment_hash: string
+  amount_satoshis: number
+  amount_usd: number
+  expires_at: number
+  description: string
+  checking_id: string
+  invoice_id: string
+}
+
+export interface LightningPaymentStatus {
+  paid: boolean
+  settled_at?: number
+  amount_paid?: number
+  payment_hash: string
+  checking_id: string
+}
+
+export interface LightningServiceConfig {
+  baseUrl: string
+  apiKey: string
+  walletId: string
+  defaultExpiryMinutes: number
+}
+
+class LightningService {
+  private config: LightningServiceConfig
+  private activeInvoices: Map<string, LightningInvoice> = new Map()
+
+  constructor() {
+    this.config = {
+      baseUrl: process.env.LNBITS_URL || 'http://localhost:5000',
+      apiKey: process.env.LNBITS_API_KEY || '',
+      walletId: process.env.LNBITS_WALLET_ID || '',
+      defaultExpiryMinutes: 30
+    }
+
+    if (!this.config.apiKey) {
+      console.warn('⚠️ LNBits API key not configured - Lightning payments will be disabled')
+    }
+  }
+
+  /**
+   * Generate a Lightning invoice with proper USD to satoshi conversion
+   */
+  async generateInvoice(
+    amountUSD: number,
+    description: string = 'BitAgora POS Payment',
+    expiryMinutes: number = this.config.defaultExpiryMinutes
+  ): Promise<LightningInvoice> {
+    try {
+      // Convert USD to satoshis using exchange service
+      const conversionResult = await cryptoExchangeService.convertUSDToLightning(amountUSD)
+      
+      if (!conversionResult.success) {
+        throw new Error(`Exchange rate conversion failed: ${conversionResult.error}`)
+      }
+
+      const satoshis = Math.round(conversionResult.cryptoAmount)
+      console.log(`🔥 Generating Lightning invoice: $${amountUSD} USD = ${satoshis} sats`)
+
+      // Create invoice via LNBits API
+      const response = await fetch(`${this.config.baseUrl}/api/v1/payments`, {
+        method: 'POST',
+        headers: {
+          'X-Api-Key': this.config.apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: satoshis,
+          memo: description,
+          out: false, // incoming payment
+          expiry: expiryMinutes * 60,
+          webhook: `${process.env.NEXT_PUBLIC_BASE_URL}/api/lightning/webhook`
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(`LNBits API error (${response.status}): ${errorData.detail || response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      const invoice: LightningInvoice = {
+        payment_request: data.payment_request,
+        payment_hash: data.payment_hash,
+        amount_satoshis: satoshis,
+        amount_usd: amountUSD,
+        expires_at: Date.now() + (expiryMinutes * 60 * 1000),
+        description,
+        checking_id: data.checking_id,
+        invoice_id: data.payment_hash
+      }
+
+      // Store invoice for monitoring
+      this.activeInvoices.set(data.payment_hash, invoice)
+
+      console.log('✅ Lightning invoice generated successfully:', {
+        payment_hash: data.payment_hash,
+        amount_sats: satoshis,
+        amount_usd: amountUSD,
+        expires_in: expiryMinutes
+      })
+
+      return invoice
+
+    } catch (error) {
+      console.error('❌ Lightning invoice generation failed:', error)
+      throw new Error(`Failed to generate Lightning invoice: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Check payment status of a Lightning invoice
+   */
+  async checkInvoiceStatus(paymentHash: string): Promise<LightningPaymentStatus> {
+    try {
+      const invoice = this.activeInvoices.get(paymentHash)
+      if (!invoice) {
+        throw new Error('Invoice not found in active invoices')
+      }
+
+      const response = await fetch(`${this.config.baseUrl}/api/v1/payments/${invoice.checking_id}`, {
+        headers: {
+          'X-Api-Key': this.config.apiKey
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`Payment status check failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      return {
+        paid: data.paid,
+        settled_at: data.settled_at ? new Date(data.settled_at * 1000).getTime() : undefined,
+        amount_paid: data.amount,
+        payment_hash: paymentHash,
+        checking_id: invoice.checking_id
+      }
+
+    } catch (error) {
+      console.error('❌ Invoice status check failed:', error)
+      return { 
+        paid: false, 
+        payment_hash: paymentHash,
+        checking_id: ''
+      }
+    }
+  }
+
+  /**
+   * Get all active invoices (for monitoring dashboard)
+   */
+  getActiveInvoices(): LightningInvoice[] {
+    const now = Date.now()
+    return Array.from(this.activeInvoices.values()).filter(
+      invoice => invoice.expires_at > now
+    )
+  }
+
+  /**
+   * Clean up expired invoices
+   */
+  cleanupExpiredInvoices(): void {
+    const now = Date.now()
+    for (const [hash, invoice] of this.activeInvoices.entries()) {
+      if (invoice.expires_at <= now) {
+        this.activeInvoices.delete(hash)
+        console.log(`🧹 Cleaned up expired invoice: ${hash}`)
+      }
+    }
+  }
+
+  /**
+   * Validate Lightning invoice using bolt11 decoder
+   */
+  async validateInvoice(paymentRequest: string): Promise<{
+    isValid: boolean
+    amount?: number
+    description?: string
+    expiry?: number
+    isExpired?: boolean
+    error?: string
+  }> {
+    try {
+      const { validateLightningInvoice } = await import('./crypto-validation')
+      const result = validateLightningInvoice(paymentRequest)
+      
+      return {
+        isValid: result.isValid,
+        amount: result.details?.amount,
+        description: result.details?.description,
+        expiry: result.details?.expiry,
+        isExpired: result.details?.isExpired,
+        error: result.error
+      }
+    } catch (error) {
+      return {
+        isValid: false,
+        error: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
+
+  /**
+   * Check if Lightning service is configured and operational
+   */
+  isConfigured(): boolean {
+    return !!(this.config.apiKey && this.config.baseUrl)
+  }
+
+  /**
+   * Health check for LNBits connection
+   */
+  async healthCheck(): Promise<{ healthy: boolean; error?: string }> {
+    try {
+      if (!this.isConfigured()) {
+        return { healthy: false, error: 'LNBits not configured' }
+      }
+
+      const response = await fetch(`${this.config.baseUrl}/api/v1/wallet`, {
+        headers: {
+          'X-Api-Key': this.config.apiKey
+        }
+      })
+
+      if (!response.ok) {
+        return { healthy: false, error: `LNBits API error: ${response.status}` }
+      }
+
+      return { healthy: true }
+    } catch (error) {
+      return { 
+        healthy: false, 
+        error: `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
+}
+
+// Export singleton instance
+export const lightningService = new LightningService()
+
+// Export types for use in other modules
+export type { LightningInvoice, LightningPaymentStatus, LightningServiceConfig } 

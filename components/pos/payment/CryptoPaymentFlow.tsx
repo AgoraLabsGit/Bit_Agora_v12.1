@@ -15,7 +15,13 @@ interface CryptoPaymentFlowProps {
   amount: number
   cartItems: any[]
   paymentSettings: any
-  onPaymentComplete: () => void
+  onPaymentComplete: (transactionData?: {
+    transactionId: string
+    paymentMethod: string
+    paymentStatus: string
+    amountTendered?: number
+    change?: number
+  }) => void
   onBack: () => void
 }
 
@@ -51,7 +57,13 @@ export const CryptoPaymentFlow = ({
     paymentMethod: method,
     onPaymentComplete: async (transactionId) => {
       await createTransactionRecord(transactionId)
-      setTimeout(onPaymentComplete, 2000)
+      setTimeout(() => {
+        onPaymentComplete({
+          transactionId,
+          paymentMethod: method,
+          paymentStatus: 'completed'
+        })
+      }, 2000)
     },
     onPaymentFailed: (error) => {
       console.error('Crypto payment failed:', error)
