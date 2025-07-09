@@ -64,31 +64,28 @@ export const PaymentMethodSelector = ({
       id: 'crypto', 
       name: 'Crypto', 
       icon: '₿', 
-      hasOptions: groupedOptions.crypto && groupedOptions.crypto.length > 0
+      hasOptions: true // Always available - crypto methods are hardcoded
     },
     { 
       id: 'qr', 
       name: 'QR Code', 
       icon: '📱', 
-      hasOptions: groupedOptions.qr && groupedOptions.qr.length > 0
+      hasOptions: qrProviders.length > 0 // Available if QR providers exist
     },
     { 
       id: 'cash', 
       name: 'Cash', 
       icon: '💵', 
-      hasOptions: groupedOptions.cash && groupedOptions.cash.length > 0
+      hasOptions: true // Always available
     }
   ]
 
   // Auto-select first available crypto method on mount
   useEffect(() => {
-    if (groupedOptions.crypto && groupedOptions.crypto.length > 0) {
-      const firstCrypto = groupedOptions.crypto[0]
-      setSelectedChild(firstCrypto.id)
-      // Don't auto-route to crypto flow, just set the selected method
-      onMethodSelect(firstCrypto.id)
-    }
-  }, [groupedOptions.crypto, onMethodSelect])
+    // Auto-select lightning as the default crypto method
+    setSelectedChild('lightning')
+    onMethodSelect('lightning')
+  }, [onMethodSelect])
 
   // Initialize QR provider for QR category
   useEffect(() => {
@@ -269,6 +266,18 @@ export const PaymentMethodSelector = ({
               </Button>
             ))}
 
+            {/* Debug test button */}
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                console.log('🔥 DEBUG BUTTON CLICKED - BUTTON HANDLERS WORKING')
+                alert('Debug button clicked - handlers are working!')
+              }}
+              className="h-8 px-3 text-xs"
+            >
+              Debug Test
+            </Button>
           </div>
         </div>
       )}
