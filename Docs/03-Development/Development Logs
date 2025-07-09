@@ -2013,5 +2013,53 @@ The working solution from early in the session is now restored:
 - No routing to separate flows needed
 - Perfect balance between functionality and UX
 
+## 2025-01-26 - Fix Crypto Payment Method Availability Based on Settings
+
+### **Issue Identified**
+- User feedback: Crypto methods shouldn't be hardcoded "ON" if user didn't configure them
+- Crypto methods should only be available if user has uploaded corresponding wallet addresses
+- Need to maintain working buttons AND inline QR display for configured methods
+- Must follow Lightning pattern: buttons set state, QR displays inline, no routing
+
+### **Root Cause**
+- Previous fix made crypto methods always available regardless of configuration
+- Didn't check if user actually configured wallet addresses in payment settings
+- Hardcoded crypto methods without validating against actual settings
+
+### **Solution Implemented**
+1. **Created `getConfiguredCryptoMethods()`**: Checks payment settings for actual wallet addresses
+2. **Dynamic crypto availability**: Only show crypto methods that have configured addresses
+3. **Smart parent category logic**: Crypto category only available if ≥1 crypto method configured
+4. **Auto-selection fix**: Use first available configured crypto method
+5. **Lightning pattern applied**: All configured crypto methods work inline (no routing)
+
+### **Technical Changes**
+- `getConfiguredCryptoMethods()`: Checks for `bitcoinLightningAddress`, `bitcoinWalletAddress`, `usdtEthereumWalletAddress`, `usdtTronWalletAddress`
+- `parentCategories`: Crypto hasOptions only if configured methods exist
+- `getChildMethods()`: Returns only configured crypto methods
+- Auto-selection: Uses first configured method instead of hardcoded lightning
+- Removed debug button and cleaned up implementation
+
+### **Configuration Requirements**
+- **Lightning**: Requires `bitcoinLightningAddress` in payment settings
+- **Bitcoin**: Requires `bitcoinWalletAddress` in payment settings  
+- **USDT (ETH)**: Requires `usdtEthereumWalletAddress` in payment settings
+- **USDT (TRX)**: Requires `usdtTronWalletAddress` in payment settings
+
+### **Result**
+- ✅ Only configured crypto methods appear in UI
+- ✅ Crypto category hidden if no methods configured
+- ✅ Configured methods work with inline QR display
+- ✅ No routing to separate flows (Lightning pattern)
+- ✅ Respects user's payment settings configuration
+- ✅ Maintains working buttons + inline QR display
+
+### **User Experience**
+- **Before**: All crypto methods always shown (even if not configured)
+- **After**: Only configured crypto methods shown with inline QR display
+- **Perfect balance**: Functionality AND UX for configured methods only
+
+This resolves the tension between working buttons and inline QR display by only showing crypto methods that are actually configured in the user's payment settings.
+
 // ... existing logs ...
 

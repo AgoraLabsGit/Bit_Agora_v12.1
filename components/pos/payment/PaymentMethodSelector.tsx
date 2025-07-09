@@ -60,12 +60,18 @@ export const PaymentMethodSelector = ({
 
   // Get configured crypto methods based on payment settings
   const getConfiguredCryptoMethods = (): PaymentOption[] => {
-    if (!paymentSettings) return []
+    console.log('🔥 PAYMENT SETTINGS:', paymentSettings)
+    
+    if (!paymentSettings) {
+      console.log('❌ NO PAYMENT SETTINGS AVAILABLE')
+      return []
+    }
 
     const configuredMethods: PaymentOption[] = []
     
     // Check Lightning Network
     if (paymentSettings.bitcoinLightningAddress) {
+      console.log('✅ Lightning configured:', paymentSettings.bitcoinLightningAddress)
       configuredMethods.push({
         id: 'lightning',
         name: 'Lightning',
@@ -74,10 +80,13 @@ export const PaymentMethodSelector = ({
         description: 'Instant Bitcoin payments via Lightning Network',
         enabled: true
       })
+    } else {
+      console.log('❌ Lightning not configured')
     }
 
     // Check Bitcoin
     if (paymentSettings.bitcoinWalletAddress) {
+      console.log('✅ Bitcoin configured:', paymentSettings.bitcoinWalletAddress)
       configuredMethods.push({
         id: 'bitcoin',
         name: 'Bitcoin',
@@ -86,10 +95,13 @@ export const PaymentMethodSelector = ({
         description: 'Bitcoin on-chain transaction',
         enabled: true
       })
+    } else {
+      console.log('❌ Bitcoin not configured')
     }
 
     // Check USDT Ethereum
     if (paymentSettings.usdtEthereumWalletAddress) {
+      console.log('✅ USDT ETH configured:', paymentSettings.usdtEthereumWalletAddress)
       configuredMethods.push({
         id: 'usdt-eth',
         name: 'USDT (ETH)',
@@ -98,10 +110,13 @@ export const PaymentMethodSelector = ({
         description: 'USDT stablecoin on Ethereum network',
         enabled: true
       })
+    } else {
+      console.log('❌ USDT ETH not configured')
     }
 
     // Check USDT Tron
     if (paymentSettings.usdtTronWalletAddress) {
+      console.log('✅ USDT TRX configured:', paymentSettings.usdtTronWalletAddress)
       configuredMethods.push({
         id: 'usdt-tron',
         name: 'USDT (TRX)',
@@ -110,8 +125,11 @@ export const PaymentMethodSelector = ({
         description: 'USDT stablecoin on Tron network',
         enabled: true
       })
+    } else {
+      console.log('❌ USDT TRX not configured')
     }
 
+    console.log('🔥 CONFIGURED METHODS:', configuredMethods)
     return configuredMethods
   }
 
@@ -217,7 +235,9 @@ export const PaymentMethodSelector = ({
     
     // For crypto category, use only configured methods
     if (parent === 'crypto') {
-      return getConfiguredCryptoMethods()
+      const cryptoMethods = getConfiguredCryptoMethods()
+      console.log('🔥 GET CHILD METHODS - CRYPTO:', cryptoMethods)
+      return cryptoMethods
     }
     
     return groupedOptions[parent] || []
@@ -277,18 +297,24 @@ export const PaymentMethodSelector = ({
             {selectedParent === 'crypto' ? 'Cryptocurrency' : 'Payment Method'}
           </h3>
           <div className="flex gap-2 flex-wrap">
-            {getChildMethods(selectedParent).map((option) => (
-              <Button
-                key={option.id}
-                variant={selectedChild === option.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleChildSelection(option.id)}
-                className="h-8 px-3 flex items-center gap-2 min-w-[80px]"
-              >
-                <span className="text-xs">{getMethodIcon(option.id)}</span>
-                <span className="text-xs">{getMethodName(option.id)}</span>
-              </Button>
-            ))}
+            {getChildMethods(selectedParent).map((option) => {
+              console.log('🔥 RENDERING BUTTON:', option.id, option)
+              return (
+                <Button
+                  key={option.id}
+                  variant={selectedChild === option.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    console.log('🔥 CRYPTO BUTTON CLICKED:', option.id)
+                    handleChildSelection(option.id)
+                  }}
+                  className="h-8 px-3 flex items-center gap-2 min-w-[80px]"
+                >
+                  <span className="text-xs">{getMethodIcon(option.id)}</span>
+                  <span className="text-xs">{getMethodName(option.id)}</span>
+                </Button>
+              )
+            })}
           </div>
         </div>
       )}
