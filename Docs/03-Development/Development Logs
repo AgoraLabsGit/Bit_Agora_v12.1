@@ -1975,3 +1975,43 @@ Status: QR Code Image Display & Modular Payment System Enhancement Complete ✅
 
 This fix significantly improves the payment flow UX while maintaining the modular modal architecture.
 
+## 2025-01-26 - Fix Crypto Payment Category Availability
+
+### **Issue Identified** 
+- Crypto payment buttons were not working after the inline QR display fix
+- Crypto parent category was being disabled due to API response dependency
+- `groupedOptions.crypto` was empty, causing `hasOptions: false` for crypto category
+- This created a tension between working buttons and inline QR display
+
+### **Root Cause**
+- Parent category availability was incorrectly tied to API response (`groupedOptions.crypto`)
+- Crypto methods are hardcoded in `getChildMethods()` but availability check used API data
+- Auto-selection logic also depended on API response instead of hardcoded methods
+
+### **Solution Implemented**
+1. **Fixed parent category logic**: Made crypto and cash always available (`hasOptions: true`)
+2. **Fixed QR category logic**: Only available when QR providers exist
+3. **Fixed auto-selection**: Use hardcoded crypto methods instead of API response
+4. **Added debug button**: For testing button event handlers functionality
+
+### **Technical Changes**
+- `parentCategories`: Crypto/cash always available, QR based on providers
+- Auto-selection useEffect: Direct lightning selection instead of API dependency
+- Added temporary debug button for testing functionality
+
+### **Result**
+- ✅ Crypto payment buttons now work correctly
+- ✅ Inline QR display maintained
+- ✅ No dependency on API response for hardcoded crypto methods
+- ✅ Debug button confirms event handlers are working
+- ✅ Both button functionality AND inline QR display work together
+
+### **Working Solution Restored**
+The working solution from early in the session is now restored:
+- Crypto buttons are clickable and responsive
+- QR codes display inline on the same checkout screen
+- No routing to separate flows needed
+- Perfect balance between functionality and UX
+
+// ... existing logs ...
+
