@@ -74,6 +74,12 @@ This document outlines the complete page development sequence for BitAgora POS, 
   - Dashboard preview and initial setup guidance
   - **Status**: Functional with admin-focused messaging
 
+- [ ] **`/onboarding/progress` - Progress Bar Enhancement** 📋 **PHASE 1**
+  - **Bring back onboarding progress bars** (removed but users liked them)
+  - Visual completion indicators throughout onboarding flow
+  - Step-by-step progress tracking
+  - **Implementation**: Enhanced progress visualization system
+
 - [x] **`/onboarding/business-setup` - Business Configuration** ✅ **COMPLETED & ENHANCED**
   - Smart defaults based on business type
   - Logo upload and branding
@@ -93,10 +99,22 @@ This document outlines the complete page development sequence for BitAgora POS, 
   - Direct routing to admin dashboard
   - **Status**: Production-ready authentication
 
+- [ ] **`/login/enhanced` - Login Screen Improvements** 📋 **PHASE 1**
+  - **Swap Admin and POS positions** on login screen
+  - **Enhanced logout button placement and functionality**
+  - Improved login interface organization
+  - **Implementation**: Login interface optimization
+
 - [ ] **`/auth/pin-login` - Employee PIN Authentication** 🚨 **CRITICAL MVP**
-  - 4-digit PIN pad interface (3×4 grid)
+  - **Enhanced PIN Authentication System**:
+    - 4-digit PIN pad interface (3×4 grid) for employees
+    - **6-digit PIN pad for Admin/Manager roles** (enhanced security)
+    - **Role-based PIN complexity requirements**
+    - **Time lock APP Screen with PIN re-login**
+    - **Admin configurable auto-lock timeout**
   - Visual feedback and animations
   - Employee role validation
+  - **Multi-user environment support** (busy restaurant scenarios)
   - **Reference**: `Docs/v10 (REFERENCE CODE)/components/auth/pin-pad.tsx`
   - **Implementation Priority**: HIGH (blocks employee POS access)
 
@@ -149,11 +167,22 @@ This document outlines the complete page development sequence for BitAgora POS, 
   - **Status**: Production-ready with 30-second refresh
 
 - [ ] **`/products` - Product Management** 📋 **PHASE 1 PRIORITY**
+  - **Enhanced Product Page Buildout**:
+    - **Add New Product Button** (top right placement)
+    - **Add Product Pop-Up Screen** with comprehensive fields
+    - **Edit Mode** for quick table field editing
+    - **Category filter dropdown** for organization
+  - **Advanced Products Table Display**:
+    - Name, Cost, Category columns
+    - **Qty in Stock** (editable input fields)
+    - **Low Quantity Count** indicators
+    - **Discount Status** display
+    - **Action buttons**: Edit (pencil), Archive, Delete
   - **Manual entries with emoji & category selection** (from todo list)
   - **Manual 86'd and low inventory management** (from todo list)
   - **Discounted products configuration** (from todo list)
   - Create, edit, delete products
-  - **Implementation**: CRUD interface with status indicators
+  - **Implementation**: Enhanced CRUD interface with comprehensive status indicators
 
 - [x] **`/transactions` - Transaction Management** ✅ **COMPLETED & INTEGRATED**
   - **Enhanced transaction details** with comprehensive table display
@@ -190,6 +219,27 @@ This document outlines the complete page development sequence for BitAgora POS, 
   - **Enhanced UI/UX**: Full-width left-aligned layout following new standards
   - **Modular architecture** with advanced error boundaries and loading states
   - **Status**: Complete payment settings with professional interface
+
+- [ ] **`/admin/payment-methods/ui-fixes` - Payment Settings UI Improvements** 📋 **PHASE 1**
+  - **QR Code files showing "uploaded" status** (currently not displaying)
+  - **Move Card Payments Section to bottom** of payment methods
+  - **Visual feedback for uploaded QR provider images**
+  - Enhanced payment method organization
+  - **Implementation**: UI/UX improvements for payment settings
+
+- [ ] **`/settings/security` - Security Settings** 📋 **PHASE 1**
+  - **Time lock APP Screen configuration**
+  - **Auto-lock timeout settings** for multi-user environments
+  - **Role-based permission matrix**
+  - **PIN confirmation settings** for sensitive operations
+  - **Implementation**: Security configuration panel
+
+- [ ] **`/settings/users` - User Management** 📋 **PHASE 1**
+  - **User wallet address management**
+  - **Role-based PIN requirements** (4-digit vs 6-digit)
+  - **Permission level assignments**
+  - **User-specific security settings**
+  - **Implementation**: Enhanced user management interface
 
 #### **1.7 Testing & Quality Assurance** 🧪 **PHASE 1**
 - [ ] **Mobile Device Testing** 🧪 **CRITICAL**
@@ -264,7 +314,29 @@ This document outlines the complete page development sequence for BitAgora POS, 
   - Category-based filtering enhancements
   - **Implementation**: Advanced categorization system
 
-#### **2.5 Advanced Invoicing**
+#### **2.5 Advanced Wallet Management** 💼 **PHASE 2**
+- [ ] **`/wallets` - Wallet Monitoring Dashboard** 📊 **PHASE 2**
+  - **Real-time wallet balance monitoring** (Blockchain & Lightning)
+  - **UTXO monitoring system** to avoid small UTXO sets
+  - **Minimum threshold alerts** for vault transfers
+  - **Multi-wallet monitoring interface**
+  - **Implementation**: Comprehensive wallet monitoring system
+
+- [ ] **`/wallets/vault` - Cold Storage Vault Management** 🔐 **PHASE 2**
+  - **Merchant Cold Storage Vault address configuration**
+  - **Hot-to-Cold wallet transfer interface**
+  - **Security best practices guidance**
+  - **Automated vault transfer recommendations**
+  - **Implementation**: Cold storage security system
+
+- [ ] **`/wallets/utxo` - UTXO Management** ⚡ **PHASE 2**
+  - **UTXO consolidation recommendations**
+  - **Blockchain monitoring for optimal fees**
+  - **UTXO analysis for vault transfers**
+  - **Transaction fee optimization**
+  - **Implementation**: Advanced UTXO management tools
+
+#### **2.6 Advanced Invoicing**
 - [ ] **`/invoices` - Invoice Management** 📄 **PHASE 2**
   - **Custom invoice creation** (from todo list)
   - **Email delivery system**

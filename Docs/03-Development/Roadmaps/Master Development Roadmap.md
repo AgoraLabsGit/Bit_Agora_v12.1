@@ -65,6 +65,24 @@
 - [ ] Visual inventory indicators (red for 86'd items, orange for low stock)
 - [ ] Enhanced product management with emoji selection and 86'd status
 
+### 🎨 PENDING: UI/UX Improvements (Phase 1)
+- [ ] **Onboarding Experience Enhancements**
+  - **Bring back onboarding progress bars** (removed but users liked them)
+  - Enhanced progress indicators throughout onboarding flow
+  - Visual completion status for setup steps
+- [ ] **Login Screen Improvements**
+  - **Swap Admin and POS positions** on login screen
+  - Improved login interface organization
+  - **Enhanced logout button placement and functionality**
+- [ ] **Payment Settings UI Fixes**
+  - **QR Code files showing "uploaded" status** (currently not displaying)
+  - **Move Card Payments Section to bottom** of payment methods
+  - Visual feedback for uploaded QR provider images
+- [ ] **Application Settings Interface**
+  - **Time lock APP Screen settings** in Admin/Settings
+  - Configurable auto-lock timeout interface
+  - Multi-user environment configuration options
+
 ### ✅ COMPLETED: Admin Panel Enhancement
 - [x] **Basic admin panel structure** ✅
 - [x] **Tax settings management interface** ✅ (2024-12-21) 
@@ -77,6 +95,28 @@
 - [ ] **Transaction management with refund processing**
 - [ ] **Employee role management**
 
+### 📦 PENDING: Advanced Product Management Features
+- [ ] **Product Page Buildout (Admin Panel)**
+  - **Add New Product Button** (top right placement)
+  - **Add Product Pop-Up Screen** with fields:
+    - Product Name, Cost, Category
+    - Discounts configuration
+    - Quantity in Stock
+    - Monitor Inventory (yes/no toggle)
+    - Low Inventory Quantity threshold
+  - **Edit Mode** (unlocks all table fields for quick inline editing)
+  - **Category filter dropdown** for product organization
+- [ ] **Enhanced Products Table Display**
+  - Name, Cost, Category columns
+  - **Qty in Stock** (editable input field in table)
+  - **Low Quantity Count** indicator
+  - **Discount Status** display
+  - **Action buttons**: Edit (pencil icon), Archive, Delete
+- [ ] **Product Management Enhancements**
+  - **Product Upload from legacy POS system** (Phase 3)
+  - **Low Inventory Count Setting** (global default + custom per product)
+  - **Product Discounts system** (Phase 3)
+
 ### ⏳ PENDING: Settings & Configuration  
 - [x] **Payment settings configuration** ✅
 - [x] **Tax calculation system with Argentina IVA (21%) support** ✅ (2024-12-21)
@@ -85,6 +125,19 @@
 - [x] **UI/UX layout standardization with full-width left-aligned design** ✅ (2025-01-08)
 - [ ] Business profile management
 - [ ] Employee management system
+
+### 🔒 PENDING: Security & Authentication Enhancements
+- [ ] **Time lock APP Screen (PIN Pad Re-Login)**
+  - Admin configurable auto-lock timeout
+  - Multi-user environment support (busy restaurant scenarios)
+  - PIN pad re-authentication interface
+- [ ] **Enhanced PIN Security for Admin/Manager roles**
+  - 6-digit PINs for Admin and Manager roles (vs 4-digit for employees)
+  - Role-based PIN complexity requirements
+- [ ] **Role-Based Permissions with Confirmation Pop-ups**
+  - Admin/Manager level change confirmations
+  - PIN confirmation for sensitive operations
+  - Permission matrix by role level
 
 ### ⏳ PENDING: Quality Assurance
 - [x] Mobile responsiveness (iPhone/iPad testing framework established)
@@ -146,6 +199,34 @@
 
 ## 🚀 Phase 2: Advanced Features (Future)
 *Phase 2 development will NOT begin until Phase 1 is 100% complete*
+
+### 💼 **WALLET MONITORING & SECURITY FEATURES**
+
+#### **🔐 Advanced Wallet Management**
+- **UTXO Monitoring System**
+  - Real-time UTXO tracking to avoid small UTXO sets
+  - UTXO consolidation recommendations for merchants
+  - Blockchain monitoring for optimal transaction fees
+  - UTXO analysis for vault transfers
+
+- **Cold Storage "Vault" Wallet Integration**
+  - Merchant Cold Storage Vault address configuration
+  - Recommended Cold Storage setup guidance
+  - Hot-to-Cold wallet transfer interface
+  - Security best practices implementation
+
+- **Bitcoin & Lightning Wallet Monitoring**
+  - Minimum threshold alerts before vault transfer recommendations
+  - Real-time balance monitoring from Blockchain & Lightning
+  - Configurable transfer thresholds (Admin/Wallet settings)
+  - Automated notifications for security transfers
+  - Multi-wallet monitoring dashboard
+
+- **Enhanced Wallet Security**
+  - User wallet address management in Admin/Users settings
+  - Wallet monitoring for amounts (Blockchain & Lightning integration)
+  - Security threshold notifications
+  - Cold storage transfer automation
 
 ### 🎯 **NEW FEATURES - Customer Engagement & Gamification**
 
@@ -231,6 +312,8 @@
 - Automated reorder points and purchasing
 - Supplier management and relationships
 - Advanced product categorization and tagging
+- **Product Upload from legacy POS system** (Phase 3 integration)
+- **Enhanced product discount system** (time-based, seasonal, limited-time offers)
 
 ---
 
@@ -238,6 +321,8 @@
 
 **Last Updated**: July 9, 2025  
 **Current Sprint Focus**: Admin panel enhancement complete, onboarding data integration, feature management system, and business profile management
+
+**Recent Additions**: Product management enhancements, security features, wallet monitoring system, and UI/UX improvements from user feedback
 
 ---
 
