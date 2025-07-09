@@ -72,7 +72,7 @@ export const PaymentSummary = ({
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               ITEMS
             </h4>
-            <div className="space-y-2">
+          <div className="space-y-2">
               {cartItems.map((item, index) => (
                 <div key={index} className="flex justify-between items-center py-1">
                   <div className="flex items-center gap-1.5">
@@ -128,7 +128,7 @@ export const PaymentSummary = ({
         
         {/* Separator before total */}
         <Separator className="my-4" />
-        
+          
         {/* Total Section - Enhanced */}
         <div className="bg-muted/30 rounded-lg p-3">
           <div className="flex justify-between items-center">
@@ -143,7 +143,7 @@ export const PaymentSummary = ({
             <span className="text-sm">{methodInfo.icon}</span>
             <span className="text-xs font-medium text-foreground text-center">
               {methodInfo.name}
-            </span>
+                </span>
           </div>
         )}
         

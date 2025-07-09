@@ -116,7 +116,7 @@ export function CryptocurrencyOption({
                 }
                 return { 
                   isValid: true, 
-                  details: { discountAmount: `${num}%` }
+                  details: `Valid discount: ${num}%`
                 }
               },
               debounceMs: 300

@@ -1,0 +1,387 @@
+/**
+ * Lightning Payment Flow Component
+ * 
+ * Real-time Lightning Network payment interface using Strike API
+ * Provides QR code display, payment monitoring, and status updates
+ * 
+ * @version 1.0.0
+ * @author BitAgora Development Team
+ */
+
+'use client'
+
+import React, { useState, useEffect, useCallback } from 'react'
+import { CryptoQRCode } from '@/components/ui/crypto-qr-code'
+import { StrikeLightningService } from '@/lib/strike-lightning-service'
+import { PaymentMonitoringService, PaymentMonitoringStatus } from '@/lib/payment-monitoring'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+
+interface LightningPaymentFlowProps {
+  amount: number
+  onPaymentComplete: (paymentData: any) => void
+  onPaymentCancel: () => void
+  onError?: (error: Error) => void
+  className?: string
+}
+
+interface LightningInvoiceData {
+  invoiceId: string
+  amount: number
+  qrContent: string
+  expires: Date
+  paymentRequest: string
+}
+
+/**
+ * Lightning Payment Flow Component
+ * 
+ * Handles the complete Lightning payment flow with real-time updates
+ */
+export function LightningPaymentFlow({
+  amount,
+  onPaymentComplete,
+  onPaymentCancel,
+  onError,
+  className = ''
+}: LightningPaymentFlowProps) {
+  const [paymentStatus, setPaymentStatus] = useState<PaymentMonitoringStatus['state']>('GENERATING')
+  const [invoiceData, setInvoiceData] = useState<LightningInvoiceData | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState<number>(0)
+  const [attempts, setAttempts] = useState<number>(0)
+  const [error, setError] = useState<string | null>(null)
+  const [isMonitoring, setIsMonitoring] = useState<boolean>(false)
+
+  // Generate Lightning invoice on mount
+  useEffect(() => {
+    generateLightningInvoice()
+    return () => {
+      // Cleanup: cancel monitoring when component unmounts
+      if (invoiceData?.invoiceId) {
+        PaymentMonitoringService.cancelMonitoring(invoiceData.invoiceId)
+      }
+    }
+  }, [amount])
+
+  /**
+   * Generate Lightning invoice via Strike API
+   */
+  const generateLightningInvoice = async () => {
+    try {
+      setPaymentStatus('GENERATING')
+      setError(null)
+      
+      console.log(`🔄 Generating Lightning invoice for $${amount}`)
+      
+      const lightningData = await StrikeLightningService.generateLightningQR(
+        amount,
+        `BitAgora POS Payment - $${amount.toFixed(2)}`
+      )
+      
+      const invoice: LightningInvoiceData = {
+        invoiceId: lightningData.invoiceId,
+        amount: lightningData.amount,
+        qrContent: lightningData.qrContent,
+        expires: lightningData.expires,
+        paymentRequest: lightningData.paymentRequest
+      }
+      
+      setInvoiceData(invoice)
+      setPaymentStatus('WAITING')
+      
+      // Start monitoring payment
+      await startPaymentMonitoring(invoice.invoiceId)
+      
+    } catch (error) {
+      console.error('Lightning invoice generation failed:', error)
+      setError(error instanceof Error ? error.message : 'Failed to generate invoice')
+      setPaymentStatus('ERROR')
+      
+      if (onError) {
+        onError(error instanceof Error ? error : new Error('Unknown error'))
+      }
+    }
+  }
+
+  /**
+   * Start payment monitoring with real-time updates
+   */
+  const startPaymentMonitoring = async (invoiceId: string) => {
+    try {
+      setIsMonitoring(true)
+      
+      const finalStatus = await PaymentMonitoringService.monitorLightningPayment({
+        invoiceId,
+        onUpdate: handlePaymentUpdate,
+        onComplete: handlePaymentComplete,
+        onError: handlePaymentError
+      })
+      
+      console.log(`Lightning payment monitoring completed:`, finalStatus)
+      
+    } catch (error) {
+      console.error('Payment monitoring failed:', error)
+      setError('Payment monitoring failed')
+      setPaymentStatus('ERROR')
+    } finally {
+      setIsMonitoring(false)
+    }
+  }
+
+  /**
+   * Handle payment status updates
+   */
+  const handlePaymentUpdate = useCallback((status: PaymentMonitoringStatus) => {
+    setPaymentStatus(status.state)
+    setTimeRemaining(status.timeRemaining || 0)
+    setAttempts(status.attempts)
+    
+    if (status.error) {
+      setError(status.error)
+    }
+    
+    console.log(`Payment status update:`, {
+      state: status.state,
+      timeRemaining: status.timeRemaining,
+      attempts: status.attempts
+    })
+  }, [])
+
+  /**
+   * Handle payment completion
+   */
+  const handlePaymentComplete = useCallback((status: PaymentMonitoringStatus) => {
+    console.log(`Payment completed:`, status)
+    
+    if (status.state === 'PAID') {
+      onPaymentComplete({
+        invoiceId: status.invoiceId,
+        amount: status.amount || amount,
+        method: 'lightning',
+        status: 'completed',
+        timestamp: new Date()
+      })
+    }
+  }, [amount, onPaymentComplete])
+
+  /**
+   * Handle payment errors
+   */
+  const handlePaymentError = useCallback((error: Error) => {
+    console.error('Payment error:', error)
+    setError(error.message)
+    setPaymentStatus('ERROR')
+    
+    if (onError) {
+      onError(error)
+    }
+  }, [onError])
+
+  /**
+   * Cancel payment and monitoring
+   */
+  const handleCancel = () => {
+    if (invoiceData?.invoiceId) {
+      PaymentMonitoringService.cancelMonitoring(invoiceData.invoiceId)
+    }
+    onPaymentCancel()
+  }
+
+  /**
+   * Retry payment generation
+   */
+  const handleRetry = () => {
+    generateLightningInvoice()
+  }
+
+  /**
+   * Format time remaining for display
+   */
+  const formatTimeRemaining = (milliseconds: number): string => {
+    const minutes = Math.floor(milliseconds / 60000)
+    const seconds = Math.floor((milliseconds % 60000) / 1000)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  }
+
+  /**
+   * Get progress percentage for timer
+   */
+  const getProgressPercentage = (): number => {
+    if (!timeRemaining) return 0
+    const totalTime = 15 * 60 * 1000 // 15 minutes in milliseconds
+    return Math.max(0, Math.min(100, (timeRemaining / totalTime) * 100))
+  }
+
+  /**
+   * Get status badge configuration
+   */
+  const getStatusBadge = () => {
+    switch (paymentStatus) {
+      case 'GENERATING':
+        return { variant: 'default', text: 'Generating Invoice', color: 'bg-blue-500' }
+      case 'WAITING':
+        return { variant: 'default', text: 'Waiting for Payment', color: 'bg-orange-500' }
+      case 'PENDING':
+        return { variant: 'default', text: 'Payment Detected', color: 'bg-yellow-500' }
+      case 'PAID':
+        return { variant: 'default', text: 'Payment Confirmed', color: 'bg-green-500' }
+      case 'FAILED':
+        return { variant: 'destructive', text: 'Payment Failed', color: 'bg-red-500' }
+      case 'EXPIRED':
+        return { variant: 'destructive', text: 'Payment Expired', color: 'bg-gray-500' }
+      case 'ERROR':
+        return { variant: 'destructive', text: 'Error', color: 'bg-red-500' }
+      default:
+        return { variant: 'default', text: 'Unknown', color: 'bg-gray-500' }
+    }
+  }
+
+  return (
+    <div className={`lightning-payment-flow ${className}`}>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center justify-center gap-2">
+            <span className="text-2xl">⚡</span>
+            Lightning Payment
+          </CardTitle>
+          <div className="space-y-2">
+            <Badge 
+              variant={getStatusBadge().variant as any}
+              className={`${getStatusBadge().color} text-white`}
+            >
+              {getStatusBadge().text}
+            </Badge>
+            <p className="text-2xl font-bold text-gray-900">
+              ${amount.toFixed(2)} USD
+            </p>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {/* QR Code Display */}
+          {paymentStatus === 'GENERATING' && (
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+              <p className="text-gray-600 text-center">
+                Generating Lightning invoice...
+              </p>
+            </div>
+          )}
+
+          {(paymentStatus === 'WAITING' || paymentStatus === 'PENDING') && invoiceData && (
+            <div className="flex flex-col items-center space-y-4">
+              <CryptoQRCode 
+                paymentMethod="lightning"
+                address={invoiceData.qrContent}
+                amount={invoiceData.amount}
+                qrContent={invoiceData.qrContent}
+                className="mx-auto"
+              />
+              <div className="text-center space-y-2">
+                <p className="text-xs text-gray-500 font-mono break-all">
+                  Invoice ID: {invoiceData.invoiceId}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {paymentStatus === 'PAID' && (
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-48 h-48 bg-green-100 rounded-lg flex items-center justify-center">
+                <span className="text-6xl text-green-600">✅</span>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-green-700">
+                  Payment Confirmed!
+                </p>
+                <p className="text-sm text-gray-600">
+                  Thank you for your payment
+                </p>
+              </div>
+            </div>
+          )}
+
+          {(paymentStatus === 'FAILED' || paymentStatus === 'EXPIRED' || paymentStatus === 'ERROR') && (
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-48 h-48 bg-red-100 rounded-lg flex items-center justify-center">
+                <span className="text-6xl text-red-600">❌</span>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-red-700">
+                  Payment {paymentStatus === 'ERROR' ? 'Error' : paymentStatus.charAt(0) + paymentStatus.slice(1).toLowerCase()}
+                </p>
+                {error && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {error}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Timer and Progress */}
+          {(paymentStatus === 'WAITING' || paymentStatus === 'PENDING') && timeRemaining > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Time remaining:</span>
+                <span className="text-sm font-mono text-gray-900">
+                  {formatTimeRemaining(timeRemaining)}
+                </span>
+              </div>
+              <Progress value={getProgressPercentage()} className="h-2" />
+            </div>
+          )}
+
+          {/* Monitoring Info */}
+          {isMonitoring && (
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Monitoring payment...</span>
+                <span>Attempt #{attempts}</span>
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            {(paymentStatus === 'FAILED' || paymentStatus === 'EXPIRED' || paymentStatus === 'ERROR') && (
+              <Button 
+                onClick={handleRetry}
+                variant="default"
+                className="flex-1"
+              >
+                Try Again
+              </Button>
+            )}
+            
+            <Button 
+              onClick={handleCancel}
+              variant="outline"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+          </div>
+
+          {/* Invoice Details */}
+          {invoiceData && (
+            <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600">
+              <p><span className="font-semibold">Invoice ID:</span> {invoiceData.invoiceId}</p>
+              <p><span className="font-semibold">Expires:</span> {invoiceData.expires.toLocaleTimeString()}</p>
+              <p><span className="font-semibold">Amount:</span> ${invoiceData.amount.toFixed(2)} USD</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default LightningPaymentFlow 

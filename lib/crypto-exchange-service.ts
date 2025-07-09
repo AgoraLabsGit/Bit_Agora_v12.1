@@ -233,4 +233,56 @@ class CryptoExchangeService {
 }
 
 // Export singleton instance
-export const cryptoExchangeService = new CryptoExchangeService() 
+export const cryptoExchangeService = new CryptoExchangeService()
+
+/**
+ * Get exchange rate for a specific cryptocurrency
+ * Helper function for compatibility with existing code
+ */
+export async function getCryptoExchangeRate(symbol: string): Promise<number> {
+  try {
+    const rates = await cryptoExchangeService.getExchangeRates()
+    
+    switch (symbol.toLowerCase()) {
+      case 'btc':
+      case 'bitcoin':
+        return rates.bitcoin
+      case 'eth':
+      case 'ethereum':
+        return rates.ethereum
+      case 'trx':
+      case 'tron':
+        return rates.tron
+      case 'usdt':
+      case 'tether':
+        return rates.tether
+      case 'ltc':
+      case 'litecoin':
+        return 90 // Approximate fallback
+      case 'doge':
+      case 'dogecoin':
+        return 0.08 // Approximate fallback
+      default:
+        throw new Error(`Unsupported cryptocurrency: ${symbol}`)
+    }
+  } catch (error) {
+    console.error(`Error getting exchange rate for ${symbol}:`, error)
+    // Return fallback rates
+    const fallbackRates: Record<string, number> = {
+      btc: 45000,
+      bitcoin: 45000,
+      eth: 2500,
+      ethereum: 2500,
+      trx: 0.10,
+      tron: 0.10,
+      usdt: 1.00,
+      tether: 1.00,
+      ltc: 90,
+      litecoin: 90,
+      doge: 0.08,
+      dogecoin: 0.08
+    }
+    
+    return fallbackRates[symbol.toLowerCase()] || 0
+  }
+} 

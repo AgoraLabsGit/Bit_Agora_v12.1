@@ -220,13 +220,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           icon: <Users className="h-4 w-4" />,
           priority: 'PHASE_1'
         },
-        {
-          id: 'feature-management',
-          title: 'Feature Management',
-          href: '/admin/feature-management',
-          icon: <Settings className="h-4 w-4" />,
-          priority: 'PHASE_1'
-        },
+
         {
           id: 'notifications',
           title: 'Notifications',

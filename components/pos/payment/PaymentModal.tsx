@@ -55,10 +55,12 @@ export const PaymentModal = ({
     }
   }, [isOpen])
 
-  // Handle method selection (stay in selection mode for inline QR display)
+  // Handle method selection (keep all methods in selection for inline display)
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method)
-    // Stay in selection mode - don't route to flows yet
+    
+    // All crypto methods (including Lightning) stay in selection mode for inline QR display
+    // This allows users to see all payment options and switch between them
   }
 
   // Handle cash payment (route to cash flow immediately)
@@ -131,14 +133,14 @@ export const PaymentModal = ({
             <h2 className="text-lg font-semibold">{getFlowTitle()}</h2>
           </div>
           <div className="flex-1 flex justify-end">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
           </div>
         </div>
 
@@ -188,20 +190,22 @@ export const PaymentModal = ({
                 onBack={handleBack}
               />
             )}
+
+            {/* Lightning is now handled inline in PaymentMethodSelector */}
           </div>
 
           {/* Right Column - Payment Summary (Full-Height Grey Background) */}
           <div className="lg:col-span-1 bg-muted/20 border-l border-border p-6 flex flex-col min-h-0">
-            <PaymentSummary
-              amount={amount}
-              cartItems={cartItems}
-              selectedMethod={selectedMethod}
-              paymentMethodName={getSelectedMethodName() || undefined}
-              taxCalculation={taxCalculation}
-              taxConfig={taxConfig}
-              showItemDetails={true}
+              <PaymentSummary
+                amount={amount}
+                cartItems={cartItems}
+                selectedMethod={selectedMethod}
+                paymentMethodName={getSelectedMethodName() || undefined}
+                taxCalculation={taxCalculation}
+                taxConfig={taxConfig}
+                showItemDetails={true}
               className="flex-1 min-h-0"
-            />
+              />
           </div>
         </div>
 

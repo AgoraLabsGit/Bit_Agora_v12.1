@@ -141,7 +141,7 @@ export default function BusinessProfilePage() {
               receiptFooter: `Thank you for choosing ${data.businessName || 'us'}!`
             }
             setBusinessSettings(businessSetup)
-          } else {
+        } else {
             // Apply smart defaults
             const smartDefaults = getSmartDefaults(data.businessType || "retail")
             setBusinessSettings(prev => ({
@@ -183,36 +183,36 @@ export default function BusinessProfilePage() {
     loadAllData()
   }, [])
 
-  const getSmartDefaults = (businessType: string) => {
-    const defaults = {
-      "restaurant": {
-        businessHours: {
-          monday: { open: "11:00", close: "22:00", closed: false },
-          tuesday: { open: "11:00", close: "22:00", closed: false },
-          wednesday: { open: "11:00", close: "22:00", closed: false },
-          thursday: { open: "11:00", close: "22:00", closed: false },
-          friday: { open: "11:00", close: "23:00", closed: false },
-          saturday: { open: "11:00", close: "23:00", closed: false },
-          sunday: { open: "12:00", close: "21:00", closed: false }
-        },
+          const getSmartDefaults = (businessType: string) => {
+            const defaults = {
+              "restaurant": {
+                businessHours: {
+                  monday: { open: "11:00", close: "22:00", closed: false },
+                  tuesday: { open: "11:00", close: "22:00", closed: false },
+                  wednesday: { open: "11:00", close: "22:00", closed: false },
+                  thursday: { open: "11:00", close: "22:00", closed: false },
+                  friday: { open: "11:00", close: "23:00", closed: false },
+                  saturday: { open: "11:00", close: "23:00", closed: false },
+                  sunday: { open: "12:00", close: "21:00", closed: false }
+                },
         returnPolicy: "0"
-      },
-      "retail": {
-        businessHours: {
-          monday: { open: "09:00", close: "18:00", closed: false },
-          tuesday: { open: "09:00", close: "18:00", closed: false },
-          wednesday: { open: "09:00", close: "18:00", closed: false },
-          thursday: { open: "09:00", close: "18:00", closed: false },
-          friday: { open: "09:00", close: "19:00", closed: false },
-          saturday: { open: "10:00", close: "19:00", closed: false },
-          sunday: { open: "12:00", close: "17:00", closed: false }
-        },
+              },
+              "retail": {
+                businessHours: {
+                  monday: { open: "09:00", close: "18:00", closed: false },
+                  tuesday: { open: "09:00", close: "18:00", closed: false },
+                  wednesday: { open: "09:00", close: "18:00", closed: false },
+                  thursday: { open: "09:00", close: "18:00", closed: false },
+                  friday: { open: "09:00", close: "19:00", closed: false },
+                  saturday: { open: "10:00", close: "19:00", closed: false },
+                  sunday: { open: "12:00", close: "17:00", closed: false }
+                },
         returnPolicy: "30"
       }
     }
-    return defaults[businessType as keyof typeof defaults] || defaults["retail"]
-  }
-
+            return defaults[businessType as keyof typeof defaults] || defaults["retail"]
+          }
+          
   const handleBusinessInfoChange = (field: string, value: string) => {
     setBusinessInfo(prev => ({ ...prev, [field]: value }))
     setIsSaved(false)
@@ -225,14 +225,14 @@ export default function BusinessProfilePage() {
 
   const handleNotificationChange = (field: string, checked: boolean) => {
     setAdminInfo(prev => ({
-      ...prev,
+            ...prev,
       notifications: {
         ...prev.notifications,
         [field]: checked
       }
     }))
     setIsSaved(false)
-  }
+      }
 
   const handleBusinessSettingsChange = (field: string, value: string) => {
     setBusinessSettings(prev => ({
@@ -348,9 +348,9 @@ export default function BusinessProfilePage() {
   if (isInitialLoading) {
     return (
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
             <p className="text-muted-foreground">Loading business profile...</p>
           </div>
         </div>
@@ -391,7 +391,7 @@ export default function BusinessProfilePage() {
                 <span>Save Changes</span>
               </>
             )}
-          </Button>
+              </Button>
         </div>
       </div>
 
@@ -482,8 +482,8 @@ export default function BusinessProfilePage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
+          </div>
+        </div>
 
             {/* Notification Preferences */}
             <div className="space-y-3">
@@ -505,8 +505,8 @@ export default function BusinessProfilePage() {
                         {key === 'inventory' && 'Low stock alerts and inventory updates'}
                         {key === 'employees' && 'Employee schedule and activity updates'}
                         {key === 'system' && 'System maintenance and security alerts'}
-                      </p>
-                    </div>
+          </p>
+        </div>
                   </div>
                 ))}
               </div>
@@ -673,16 +673,16 @@ export default function BusinessProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Business Hours */}
-        <Card>
-          <CardHeader>
+          {/* Business Hours */}
+          <Card>
+            <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-blue-600" />
               <span>Business Hours</span>
-            </CardTitle>
-            <CardDescription>Set your operating hours for each day of the week</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+              </CardTitle>
+              <CardDescription>Set your operating hours for each day of the week</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
             {businessSettings.businessHours && days.map((day) => {
               const daySchedule = businessSettings.businessHours[day as keyof typeof businessSettings.businessHours]
               if (!daySchedule) return null
@@ -722,21 +722,21 @@ export default function BusinessProfilePage() {
                 </div>
               )
             })}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Contact Information */}
-        <Card>
-          <CardHeader>
+          {/* Contact Information */}
+          <Card>
+            <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <MapPin className="h-5 w-5 text-blue-600" />
               <span>Contact Information</span>
-            </CardTitle>
-            <CardDescription>Update your business contact details and social media</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="website">Website URL</Label>
+              </CardTitle>
+              <CardDescription>Update your business contact details and social media</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="website">Website URL</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -748,80 +748,80 @@ export default function BusinessProfilePage() {
                   className="pl-10 mt-1"
                 />
               </div>
-            </div>
-            
-            <div>
-              <Label className="mb-3 block">Social Media</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="instagram" className="text-sm text-muted-foreground">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    placeholder="@yourbusiness"
+              </div>
+              
+              <div>
+                <Label className="mb-3 block">Social Media</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="instagram" className="text-sm text-muted-foreground">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      placeholder="@yourbusiness"
                     value={businessSettings.socialMedia.instagram}
-                    onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
+                      onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
                     className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="facebook" className="text-sm text-muted-foreground">Facebook</Label>
-                  <Input
-                    id="facebook"
-                    placeholder="@yourbusiness"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="facebook" className="text-sm text-muted-foreground">Facebook</Label>
+                    <Input
+                      id="facebook"
+                      placeholder="@yourbusiness"
                     value={businessSettings.socialMedia.facebook}
-                    onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
+                      onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
                     className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="twitter" className="text-sm text-muted-foreground">Twitter/X</Label>
-                  <Input
-                    id="twitter"
-                    placeholder="@yourbusiness"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="twitter" className="text-sm text-muted-foreground">Twitter/X</Label>
+                    <Input
+                      id="twitter"
+                      placeholder="@yourbusiness"
                     value={businessSettings.socialMedia.twitter}
-                    onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
+                      onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
                     className="mt-1"
-                  />
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Operational Settings */}
-        <Card>
-          <CardHeader>
+          {/* Operational Settings */}
+          <Card>
+            <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Settings className="h-5 w-5 text-blue-600" />
               <span>Operational Settings</span>
-            </CardTitle>
+              </CardTitle>
             <CardDescription>Configure basic business operations and policies</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="receiptFooter">Receipt Footer Message</Label>
-              <textarea
-                id="receiptFooter"
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="receiptFooter">Receipt Footer Message</Label>
+                <textarea
+                  id="receiptFooter"
                 value={businessSettings.receiptFooter}
                 onChange={(e) => handleBusinessSettingsChange('receiptFooter', e.target.value)}
-                className="w-full mt-1 p-3 bg-background border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-h-[100px]"
-                rows={3}
-                placeholder="Thank you for your business! Follow us @yourbusiness"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="returnPolicy">Return Policy (days)</Label>
-                <Input
-                  id="returnPolicy"
-                  type="number"
-                  min="0"
-                  max="365"
+                  className="w-full mt-1 p-3 bg-background border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-h-[100px]"
+                  rows={3}
+                  placeholder="Thank you for your business! Follow us @yourbusiness"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="returnPolicy">Return Policy (days)</Label>
+                  <Input
+                    id="returnPolicy"
+                    type="number"
+                    min="0"
+                    max="365"
                   value={businessSettings.returnPolicy}
                   onChange={(e) => handleBusinessSettingsChange('returnPolicy', e.target.value)}
-                  className="mt-1"
-                />
+                    className="mt-1"
+                  />
               </div>
               
               <div className="flex items-center space-x-3 p-4 rounded-lg border border-border">
@@ -834,28 +834,28 @@ export default function BusinessProfilePage() {
                   <Label htmlFor="autoBackup" className="font-medium">Enable automatic daily backups</Label>
                   <p className="text-sm text-muted-foreground">Automatically backup your data every night at 2 AM</p>
                 </div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         {/* Information Notice */}
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
               <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
+                    <div>
                 <h3 className="font-medium text-blue-900">Profile Information</h3>
                 <p className="text-sm text-blue-800 mt-1">
                   This information was initially collected during your onboarding process and can be updated anytime. 
                   For security settings, subscription management, inventory settings, and customer features, 
                   please visit the respective sections in the admin settings.
-                </p>
+                      </p>
+                    </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
     </div>
   )
-}
+} 

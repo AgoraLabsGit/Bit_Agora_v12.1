@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { CryptoQRCode } from '@/components/ui/crypto-qr-code'
 import { PaymentStatusIndicator } from '@/components/pos/payment/PaymentStatusIndicator'
 import { usePaymentStatus } from '@/app/pos/hooks/use-payment-status'
-import { generateCryptoQR, QRData, validateQRData } from '@/lib/payment/qr-generation'
+import { generateCryptoQR, QRGenerationResult, validateQRResult } from '@/lib/payment/qr-generation'
 
 interface CryptoPaymentFlowProps {
   method: string
@@ -33,7 +33,7 @@ export const CryptoPaymentFlow = ({
   onPaymentComplete,
   onBack
 }: CryptoPaymentFlowProps) => {
-  const [qrData, setQRData] = useState<QRData | null>(null)
+  const [qrData, setQRData] = useState<QRGenerationResult | null>(null)
   const [isGeneratingQR, setIsGeneratingQR] = useState(false)
   const [qrError, setQRError] = useState<string | null>(null)
   const [currentPaymentId, setCurrentPaymentId] = useState<string | null>(null)
@@ -81,19 +81,16 @@ export const CryptoPaymentFlow = ({
       try {
         console.log('🔥 Generating QR for:', method, 'USD amount:', amount)
         
-        const result = await generateCryptoQR(method, amount, paymentSettings, {
-          validateAddresses: true,
-          includeFallbacks: true
-        })
+        const result = await generateCryptoQR(method, amount)
 
-        if (result && validateQRData(result)) {
+        if (result && validateQRResult(result)) {
           setQRData(result)
           console.log('✅ QR generated successfully:', {
-            method: result.method,
-            usdAmount: result.amount,
-            cryptoAmount: result.cryptoAmount,
-            formattedAmount: result.formattedCryptoAmount,
-            exchangeRate: result.exchangeRate
+            method: method,
+            usdAmount: amount,
+            cryptoAmount: result.conversionResult?.cryptoAmount,
+            formattedAmount: result.conversionResult?.formattedAmount,
+            exchangeRate: result.conversionResult?.exchangeRate
           })
         } else {
           const errorMsg = result?.error || 'Failed to generate QR code'
@@ -141,18 +138,10 @@ export const CryptoPaymentFlow = ({
     return response.json()
   }
 
-  const formatCryptoAmount = (qrData: QRData) => {
-    switch (qrData.method) {
-      case 'lightning':
-        return `${qrData.formattedCryptoAmount} sat`
-      case 'bitcoin':
-        return `${qrData.formattedCryptoAmount} BTC`
-      case 'usdt-eth':
-      case 'usdt-tron':
-        return `${qrData.formattedCryptoAmount} USDT`
-      default:
-        return qrData.formattedCryptoAmount
-    }
+  const formatCryptoAmount = (qrData: QRGenerationResult) => {
+    if (!qrData.conversionResult) return 'N/A'
+    
+    return qrData.conversionResult.formattedAmount
   }
 
   const getMethodDisplayName = (method: string) => {
@@ -180,9 +169,9 @@ export const CryptoPaymentFlow = ({
         {qrData && (
           <div className="text-sm text-slate-300">
             ≈ {formatCryptoAmount(qrData)}
-            {qrData.exchangeRate > 0 && (
+            {qrData.conversionResult?.exchangeRate && qrData.conversionResult.exchangeRate > 0 && (
               <div className="text-xs text-slate-400 mt-1">
-                Rate: ${qrData.exchangeRate.toLocaleString()}
+                Rate: ${qrData.conversionResult.exchangeRate.toLocaleString()}
               </div>
             )}
           </div>
@@ -237,7 +226,7 @@ export const CryptoPaymentFlow = ({
           </div>
           
           <CryptoQRCode
-            paymentMethod={qrData.method}
+            paymentMethod={method}
             address={qrData.address}
             amount={amount}
             qrContent={qrData.qrContent}

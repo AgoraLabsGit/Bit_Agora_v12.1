@@ -1,275 +1,353 @@
-// /lib/payment/qr-generation.ts
-// Shared QR generation utility with proper amount conversion and validation
+/**
+ * BitAgora QR Generation Service
+ * 
+ * Generates QR codes for cryptocurrency payments
+ * Supports Lightning Network via Strike API integration
+ * 
+ * @version 2.0.0
+ * @author BitAgora Development Team
+ */
 
-import { cryptoExchangeService, CryptoConversionResult } from '../crypto-exchange-service'
-import { 
-  validateBitcoinAddress, 
-  validateLightningInvoice, 
-  validateEthereumAddress, 
-  validateTronAddress,
-  validateUSDTAddress 
-} from '../crypto-validation'
+import { getCryptoExchangeRate } from '../crypto-exchange-service'
+import { validateCryptoAddress } from '../crypto-validation'
 
-export interface QRData {
-  address: string
+// QR Generation types
+interface QRGenerationResult {
   qrContent: string
-  method: string
-  amount: number
-  cryptoAmount: number
-  formattedCryptoAmount: string
-  exchangeRate: number
+  address: string
   isValid: boolean
+  conversionResult?: CryptoConversionResult
+  error?: string
+  invoiceId?: string
+  expires?: Date
+}
+
+interface CryptoConversionResult {
+  success: boolean
+  cryptoAmount: number
+  formattedAmount: string
+  exchangeRate: number
   error?: string
 }
 
-export interface QRGenerationOptions {
-  validateAddresses?: boolean
-  includeFallbacks?: boolean
+// Fallback addresses for development/testing
+const fallbackAddresses = {
+  bitcoin: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+  ethereum: '0x742Ed013A4b9d9Fb59a5a9E8f3e3f7c5b5c3e8f9',
+  litecoin: 'ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+  dogecoin: 'DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L',
+  lightning: 'lnbc1500n1pjhm9j7pp5zq0q6p8p9p0p1p2p3p4p5p6p7p8p9p0p1p2p3p4p5p6p7p8p9p0p1',
+  usdt: '0x742Ed013A4b9d9Fb59a5a9E8f3e3f7c5b5c3e8f9'
 }
 
-export const generateCryptoQR = async (
-  method: string, 
-  usdAmount: number, 
-  paymentSettings: any,
-  options: QRGenerationOptions = { validateAddresses: true, includeFallbacks: true }
-): Promise<QRData | null> => {
-  console.log('🔥 Generating QR for method:', method, 'amount:', usdAmount)
+/**
+ * Generate QR code for cryptocurrency payment
+ */
+export async function generateCryptoQR(
+  cryptoType: string,
+  usdAmount: number,
+  merchantId?: string
+): Promise<QRGenerationResult> {
+  console.log(`🔄 Generating ${cryptoType} QR for $${usdAmount}`)
+  
+  let qrContent = ''
+  let address = ''
+  let isValid = true
+  let conversionResult: CryptoConversionResult | undefined
+  let error: string | undefined
+  let invoiceId: string | undefined
+  let expires: Date | undefined
 
   try {
-    // Fallback addresses for testing when settings are not configured
-    const fallbackAddresses = {
-      lightning: 'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq8rkx3yf5tcsyz3d73gafnh3cax9rn449d9p5uxz9ezhhypd0elx87sjle52x86fux2ypatgddc6k63n7erqz25le42c4u4ecky03ylcqca784w',
-      bitcoin: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-      'usdt-eth': '0x742d35Cc6634C0532925a3b8D25c5cf943C1D88B',
-      'usdt-tron': 'TQn9Y2khEsLJW1ChVWFMSMeRDow5oREqjN'
-    }
-
-    let address = ''
-    let qrContent = ''
-    let conversionResult: CryptoConversionResult | null = null
-    let isValid = true
-    let error: string | undefined
-
-    switch (method) {
+    switch (cryptoType.toLowerCase()) {
       case 'lightning':
-        // Lightning is temporarily disabled until LNBits setup is complete
-        return {
-          address: '',
-          qrContent: '',
-          method,
-          amount: usdAmount,
-          cryptoAmount: 0,
-          formattedCryptoAmount: '0',
-          exchangeRate: 0,
-          isValid: false,
-          error: 'Lightning payments temporarily disabled - LNBits setup in progress'
+        // Use Strike API for Lightning payments via API route
+        try {
+          console.log('🔄 Generating Lightning invoice via API route')
+          
+          const response = await fetch('/api/lightning/generate-invoice', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              amount: usdAmount,
+              description: `BitAgora POS Payment - $${usdAmount.toFixed(2)}`
+            })
+          })
+          
+          const result = await response.json()
+          
+          if (result.success && result.data) {
+            const lightningData = result.data
+            
+            qrContent = lightningData.qrContent
+            address = lightningData.qrContent
+            invoiceId = lightningData.invoiceId
+            expires = new Date(lightningData.expires)
+            
+            // Get exchange rate (using fallback for now)
+            const exchangeRate = 45000 // TODO: Add API route for exchange rate
+            
+            conversionResult = {
+              success: true,
+              cryptoAmount: usdAmount, // Strike handles conversion internally
+              formattedAmount: `$${usdAmount.toFixed(2)} USD`,
+              exchangeRate
+            }
+            
+            console.log(`✅ Lightning invoice generated: ${invoiceId}`)
+          } else {
+            throw new Error(result.error || 'Failed to generate Lightning invoice')
+          }
+          
+        } catch (lightningError) {
+          console.error('Strike Lightning generation failed:', lightningError)
+          
+          // Fallback to static invoice for development
+          console.log('🔄 Using fallback Lightning invoice')
+          qrContent = fallbackAddresses.lightning
+          address = fallbackAddresses.lightning
+          isValid = false
+          error = 'Strike service unavailable - using fallback'
+          
+          conversionResult = {
+            success: false,
+            cryptoAmount: 0,
+            formattedAmount: 'Fallback Mode',
+            exchangeRate: 45000,
+            error: 'Strike API unavailable'
+          }
         }
+        break
 
       case 'bitcoin':
-        address = paymentSettings?.bitcoinWalletAddress || (options.includeFallbacks ? fallbackAddresses.bitcoin : '')
+      case 'btc':
+        // Convert USD to BTC
+        const btcRate = await getCryptoExchangeRate('BTC')
+        const btcAmount = usdAmount / btcRate
         
-        // Validate Bitcoin address
-        if (options.validateAddresses && address) {
-          const validation = validateBitcoinAddress(address)
-          if (!validation.isValid) {
-            error = `Invalid Bitcoin address: ${validation.error}`
-            isValid = false
-          }
-        }
-
-        // Convert USD to BTC with proper amount
-        conversionResult = await cryptoExchangeService.convertUSDToBitcoin(usdAmount)
+        address = fallbackAddresses.bitcoin
+        qrContent = `bitcoin:${address}?amount=${btcAmount.toFixed(8)}`
         
-        if (!conversionResult.success) {
-          error = conversionResult.error
-          isValid = false
-        } else {
-          // Create BIP21 URI with proper BTC amount
-          qrContent = `bitcoin:${address}?amount=${conversionResult.formattedAmount}`
+        // Validate address
+        isValid = validateCryptoAddress(address, 'bitcoin').isValid
+        
+        conversionResult = {
+          success: true,
+          cryptoAmount: btcAmount,
+          formattedAmount: `${btcAmount.toFixed(8)} BTC`,
+          exchangeRate: btcRate
         }
         break
 
-      case 'usdt-eth':
-        address = paymentSettings?.usdtEthereumWalletAddress || (options.includeFallbacks ? fallbackAddresses['usdt-eth'] : '')
+      case 'ethereum':
+      case 'eth':
+        // Convert USD to ETH
+        const ethRate = await getCryptoExchangeRate('ETH')
+        const ethAmount = usdAmount / ethRate
         
-        // Validate Ethereum address for USDT
-        if (options.validateAddresses && address) {
-          const validation = validateUSDTAddress(address, 'ethereum')
-          if (!validation.isValid) {
-            error = `Invalid Ethereum address for USDT: ${validation.error}`
-            isValid = false
-          }
-        }
-
-        // Convert USD to USDT (1:1 ratio with proper decimals)
-        conversionResult = await cryptoExchangeService.convertUSDToUSDT(usdAmount)
+        address = fallbackAddresses.ethereum
+        qrContent = `ethereum:${address}?value=${ethAmount.toFixed(6)}`
         
-        if (!conversionResult.success) {
-          error = conversionResult.error
-          isValid = false
-        } else {
-          // USDT has 6 decimals, so convert to base units (microUSDT) for URI
-          const usdtBaseUnits = Math.round(conversionResult.cryptoAmount * 1000000)
-          // Create Ethereum token transfer URI with base units
-          qrContent = `ethereum:${address}?amount=${usdtBaseUnits}&token=0xdac17f958d2ee523a2206206994597c13d831ec7`
+        // Validate address
+        isValid = validateCryptoAddress(address, 'ethereum').isValid
+        
+        conversionResult = {
+          success: true,
+          cryptoAmount: ethAmount,
+          formattedAmount: `${ethAmount.toFixed(6)} ETH`,
+          exchangeRate: ethRate
         }
         break
 
-      case 'usdt-tron':
-        address = paymentSettings?.usdtTronWalletAddress || (options.includeFallbacks ? fallbackAddresses['usdt-tron'] : '')
+      case 'litecoin':
+      case 'ltc':
+        // Convert USD to LTC
+        const ltcRate = await getCryptoExchangeRate('LTC')
+        const ltcAmount = usdAmount / ltcRate
         
-        // Validate Tron address for USDT
-        if (options.validateAddresses && address) {
-          const validation = validateUSDTAddress(address, 'tron')
-          if (!validation.isValid) {
-            error = `Invalid Tron address for USDT: ${validation.error}`
-            isValid = false
-          }
+        address = fallbackAddresses.litecoin
+        qrContent = `litecoin:${address}?amount=${ltcAmount.toFixed(8)}`
+        
+        // Validate address
+        isValid = validateCryptoAddress(address, 'litecoin').isValid
+        
+        conversionResult = {
+          success: true,
+          cryptoAmount: ltcAmount,
+          formattedAmount: `${ltcAmount.toFixed(8)} LTC`,
+          exchangeRate: ltcRate
         }
+        break
 
-        // Convert USD to USDT (1:1 ratio with proper decimals)
-        conversionResult = await cryptoExchangeService.convertUSDToUSDT(usdAmount)
+      case 'dogecoin':
+      case 'doge':
+        // Convert USD to DOGE
+        const dogeRate = await getCryptoExchangeRate('DOGE')
+        const dogeAmount = usdAmount / dogeRate
         
-        if (!conversionResult.success) {
-          error = conversionResult.error
-          isValid = false
-        } else {
-          // USDT has 6 decimals, so convert to base units (microUSDT) for URI
-          const usdtBaseUnits = Math.round(conversionResult.cryptoAmount * 1000000)
-          // Create Tron token transfer URI with base units
-          qrContent = `tron:${address}?amount=${usdtBaseUnits}&token=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t`
+        address = fallbackAddresses.dogecoin
+        qrContent = `dogecoin:${address}?amount=${dogeAmount.toFixed(2)}`
+        
+        // Validate address
+        isValid = validateCryptoAddress(address, 'dogecoin').isValid
+        
+        conversionResult = {
+          success: true,
+          cryptoAmount: dogeAmount,
+          formattedAmount: `${dogeAmount.toFixed(2)} DOGE`,
+          exchangeRate: dogeRate
+        }
+        break
+
+      case 'usdt':
+      case 'tether':
+        // Convert USD to USDT (should be ~1:1)
+        const usdtRate = await getCryptoExchangeRate('USDT')
+        const usdtAmount = usdAmount / usdtRate
+        
+        address = fallbackAddresses.usdt
+        qrContent = `ethereum:${address}?value=${usdtAmount.toFixed(2)}`
+        
+        // Validate address
+        isValid = validateCryptoAddress(address, 'ethereum').isValid // USDT uses Ethereum addresses
+        
+        conversionResult = {
+          success: true,
+          cryptoAmount: usdtAmount,
+          formattedAmount: `${usdtAmount.toFixed(2)} USDT`,
+          exchangeRate: usdtRate
         }
         break
 
       default:
-        console.error('❌ Unknown payment method:', method)
-        return null
+        throw new Error(`Unsupported cryptocurrency: ${cryptoType}`)
     }
 
-    if (!address && !options.includeFallbacks) {
-      console.error('❌ No address available for method:', method)
-      return null
+    // Store Lightning invoice ID for payment monitoring
+    if (invoiceId) {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('currentLightningInvoice', invoiceId)
+        localStorage.setItem('currentLightningExpiry', expires?.toISOString() || '')
+      }
     }
 
-    const result: QRData = {
-      address,
+    const result: QRGenerationResult = {
       qrContent,
-      method,
-      amount: usdAmount,
-      cryptoAmount: conversionResult?.cryptoAmount || 0,
-      formattedCryptoAmount: conversionResult?.formattedAmount || '0',
-      exchangeRate: conversionResult?.exchangeRate || 0,
+      address,
       isValid,
-      error
+      conversionResult,
+      error,
+      invoiceId,
+      expires
     }
 
-    if (isValid) {
-      console.log('✅ QR generated successfully:', {
-        method,
-        usdAmount,
-        cryptoAmount: result.cryptoAmount,
-        formattedAmount: result.formattedCryptoAmount,
-        exchangeRate: result.exchangeRate
-      })
-    } else {
-      console.error('❌ QR generation failed:', error)
-    }
+    console.log(`✅ QR generated for ${cryptoType}:`, {
+      valid: isValid,
+      amount: conversionResult?.formattedAmount,
+      invoiceId: invoiceId || 'none'
+    })
 
     return result
+
   } catch (error) {
-    console.error('❌ QR generation error:', error)
+    console.error(`❌ QR generation failed for ${cryptoType}:`, error)
+    
+    // Return fallback result
     return {
-      address: '',
-      qrContent: '',
-      method,
-      amount: usdAmount,
-      cryptoAmount: 0,
-      formattedCryptoAmount: '0',
-      exchangeRate: 0,
+      qrContent: fallbackAddresses[cryptoType as keyof typeof fallbackAddresses] || '',
+      address: fallbackAddresses[cryptoType as keyof typeof fallbackAddresses] || '',
       isValid: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      conversionResult: {
+        success: false,
+        cryptoAmount: 0,
+        formattedAmount: 'Error',
+        exchangeRate: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
     }
-  }
-}
-
-export const formatQRForDisplay = (qrData: QRData | null): string => {
-  if (!qrData) return ''
-  
-  switch (qrData.method) {
-    case 'lightning':
-      return `Lightning Network Payment (${qrData.formattedCryptoAmount} sat)`
-    case 'bitcoin':
-      return `Bitcoin Payment (${qrData.formattedCryptoAmount} BTC)`
-    case 'usdt-eth':
-      return `USDT (Ethereum) Payment (${qrData.formattedCryptoAmount} USDT)`
-    case 'usdt-tron':
-      return `USDT (Tron) Payment (${qrData.formattedCryptoAmount} USDT)`
-    default:
-      return 'Crypto Payment'
-  }
-}
-
-export const getMethodIcon = (method: string): string => {
-  switch (method) {
-    case 'lightning':
-      return '⚡'
-    case 'bitcoin':
-      return '₿'
-    case 'usdt-eth':
-      return '$'
-    case 'usdt-tron':
-      return '$'
-    default:
-      return '₿'
-  }
-}
-
-export const getMethodName = (method: string): string => {
-  switch (method) {
-    case 'lightning':
-      return 'Lightning'
-    case 'bitcoin':
-      return 'Bitcoin'
-    case 'usdt-eth':
-      return 'USDT (ETH)'
-    case 'usdt-tron':
-      return 'USDT (TRX)'
-    default:
-      return method
   }
 }
 
 /**
- * Validate crypto QR data before display
+ * Get current Lightning invoice from storage
  */
-export const validateQRData = (qrData: QRData): boolean => {
-  if (!qrData.isValid) {
-    console.error('QR validation failed:', qrData.error)
-    return false
+export function getCurrentLightningInvoice(): string | null {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return localStorage.getItem('currentLightningInvoice')
   }
+  return null
+}
 
-  if (!qrData.address || !qrData.qrContent) {
-    console.error('QR data missing required fields')
-    return false
+/**
+ * Clear Lightning invoice from storage
+ */
+export function clearLightningInvoice(): void {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.removeItem('currentLightningInvoice')
+    localStorage.removeItem('currentLightningExpiry')
   }
+}
 
-  if (qrData.cryptoAmount <= 0) {
-    console.error('Invalid crypto amount:', qrData.cryptoAmount)
-    return false
+/**
+ * Check if Lightning invoice is expired
+ */
+export function isLightningInvoiceExpired(): boolean {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const expiryStr = localStorage.getItem('currentLightningExpiry')
+    if (expiryStr) {
+      const expiry = new Date(expiryStr)
+      return expiry < new Date()
+    }
   }
-
   return true
 }
 
 /**
- * Generate Lightning invoice dynamically (placeholder for future implementation)
+ * Validate QR generation result
  */
-export const generateLightningInvoice = async (
-  satoshis: number,
-  description: string = 'BitAgora POS Payment'
-): Promise<string> => {
-  // TODO: Implement actual Lightning invoice generation
-  // For now, return fallback invoice
-  console.warn('Dynamic Lightning invoice generation not implemented yet')
-  return 'lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq8rkx3yf5tcsyz3d73gafnh3cax9rn449d9p5uxz9ezhhypd0elx87sjle52x86fux2ypatgddc6k63n7erqz25le42c4u4ecky03ylcqca784w'
+export function validateQRResult(result: QRGenerationResult): boolean {
+  if (!result.qrContent || !result.address) {
+    return false
+  }
+  
+  if (result.error) {
+    return false
+  }
+  
+  if (!result.conversionResult?.success) {
+    return false
+  }
+  
+  return result.isValid
+}
+
+/**
+ * Format crypto amount for display
+ */
+export function formatCryptoAmount(
+  amount: number,
+  cryptoType: string,
+  decimals?: number
+): string {
+  const defaultDecimals = {
+    bitcoin: 8,
+    ethereum: 6,
+    litecoin: 8,
+    dogecoin: 2,
+    usdt: 2,
+    lightning: 2
+  }
+  
+  const decimalPlaces = decimals || defaultDecimals[cryptoType.toLowerCase() as keyof typeof defaultDecimals] || 8
+  
+  return `${amount.toFixed(decimalPlaces)} ${cryptoType.toUpperCase()}`
+}
+
+// Export types
+export type {
+  QRGenerationResult,
+  CryptoConversionResult
 } 

@@ -195,12 +195,14 @@ class LightningService {
       const { validateLightningInvoice } = await import('./crypto-validation')
       const result = validateLightningInvoice(paymentRequest)
       
+      const details = typeof result.details === 'object' ? result.details : undefined
+      
       return {
         isValid: result.isValid,
-        amount: result.details?.amount,
-        description: result.details?.description,
-        expiry: result.details?.expiry,
-        isExpired: result.details?.isExpired,
+        amount: details?.amount,
+        description: details?.description,
+        expiry: details?.expiry,
+        isExpired: details?.isExpired,
         error: result.error
       }
     } catch (error) {

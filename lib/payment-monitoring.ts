@@ -1,0 +1,281 @@
+/**
+ * BitAgora Payment Monitoring Service
+ * 
+ * Real-time payment status monitoring with UI callbacks
+ * Supports Lightning Network payments via Strike API
+ * 
+ * @version 1.0.0
+ * @author BitAgora Development Team
+ */
+
+import { StrikeLightningService, StrikePaymentStatus } from './strike-lightning-service'
+
+// Payment monitoring types
+interface PaymentMonitoringOptions {
+  invoiceId: string
+  onUpdate: (status: PaymentMonitoringStatus) => void
+  onComplete?: (status: PaymentMonitoringStatus) => void
+  onError?: (error: Error) => void
+  maxAttempts?: number
+  pollingInterval?: number
+}
+
+interface PaymentMonitoringStatus {
+  state: 'GENERATING' | 'WAITING' | 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED' | 'ERROR'
+  amount?: number
+  updated: Date
+  invoiceId: string
+  attempts: number
+  timeRemaining?: number
+  error?: string
+}
+
+/**
+ * Payment Monitoring Service
+ * 
+ * Handles real-time payment status updates for Lightning payments
+ * Provides clean UI callbacks and error handling
+ */
+export class PaymentMonitoringService {
+  private static activeMonitors: Map<string, AbortController> = new Map()
+
+  /**
+   * Monitor Lightning payment with real-time updates
+   */
+  static async monitorLightningPayment(
+    options: PaymentMonitoringOptions
+  ): Promise<PaymentMonitoringStatus> {
+    const {
+      invoiceId,
+      onUpdate,
+      onComplete,
+      onError,
+      maxAttempts = 180, // 15 minutes at 5-second intervals
+      pollingInterval = 5000 // 5 seconds
+    } = options
+
+    // Cancel any existing monitor for this invoice
+    this.cancelMonitoring(invoiceId)
+
+    // Create abort controller for this monitor
+    const abortController = new AbortController()
+    this.activeMonitors.set(invoiceId, abortController)
+
+    try {
+      let attempts = 0
+      const startTime = Date.now()
+
+      while (attempts < maxAttempts && !abortController.signal.aborted) {
+        try {
+          // Get payment status from Strike
+          const strikeStatus = await StrikeLightningService.checkPaymentStatus(invoiceId)
+          
+          // Calculate time remaining (15 minutes from start)
+          const elapsed = Date.now() - startTime
+          const timeRemaining = Math.max(0, (15 * 60 * 1000) - elapsed)
+
+          // Map Strike status to monitoring status
+          const monitoringStatus: PaymentMonitoringStatus = {
+            state: this.mapStrikeStatus(strikeStatus.state),
+            amount: strikeStatus.paidAmount,
+            updated: new Date(),
+            invoiceId,
+            attempts: attempts + 1,
+            timeRemaining
+          }
+
+          // Notify UI of update
+          onUpdate(monitoringStatus)
+
+          // Check if payment is complete
+          if (monitoringStatus.state === 'PAID') {
+            console.log(`✅ Payment completed: ${invoiceId}`)
+            this.cleanup(invoiceId)
+            
+            if (onComplete) {
+              onComplete(monitoringStatus)
+            }
+            
+            return monitoringStatus
+          }
+
+          // Check if payment failed or expired
+          if (monitoringStatus.state === 'FAILED' || monitoringStatus.state === 'EXPIRED') {
+            console.log(`❌ Payment ${monitoringStatus.state}: ${invoiceId}`)
+            this.cleanup(invoiceId)
+            
+            if (onComplete) {
+              onComplete(monitoringStatus)
+            }
+            
+            return monitoringStatus
+          }
+
+          // Check if time expired
+          if (timeRemaining <= 0) {
+            console.log(`⏰ Payment monitoring timeout: ${invoiceId}`)
+            const expiredStatus: PaymentMonitoringStatus = {
+              state: 'EXPIRED',
+              updated: new Date(),
+              invoiceId,
+              attempts: attempts + 1,
+              timeRemaining: 0
+            }
+            
+            this.cleanup(invoiceId)
+            
+            if (onComplete) {
+              onComplete(expiredStatus)
+            }
+            
+            return expiredStatus
+          }
+
+          // Wait before next check
+          await this.sleep(pollingInterval, abortController.signal)
+          attempts++
+
+        } catch (error) {
+          console.error(`Payment monitoring attempt ${attempts + 1} failed:`, error)
+          attempts++
+
+          // If we've exhausted retries, fail
+          if (attempts >= maxAttempts) {
+            const errorStatus: PaymentMonitoringStatus = {
+              state: 'ERROR',
+              updated: new Date(),
+              invoiceId,
+              attempts,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            }
+
+            this.cleanup(invoiceId)
+            
+            if (onError) {
+              onError(error instanceof Error ? error : new Error('Unknown error'))
+            }
+            
+            return errorStatus
+          }
+
+          // Wait before retry
+          await this.sleep(2000, abortController.signal)
+        }
+      }
+
+      // If we get here, monitoring was cancelled
+      console.log(`🚫 Payment monitoring cancelled: ${invoiceId}`)
+      return {
+        state: 'ERROR',
+        updated: new Date(),
+        invoiceId,
+        attempts,
+        error: 'Monitoring cancelled'
+      }
+
+    } catch (error) {
+      console.error('Payment monitoring failed:', error)
+      this.cleanup(invoiceId)
+      
+      const errorStatus: PaymentMonitoringStatus = {
+        state: 'ERROR',
+        updated: new Date(),
+        invoiceId,
+        attempts: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+      
+      if (onError) {
+        onError(error instanceof Error ? error : new Error('Unknown error'))
+      }
+      
+      return errorStatus
+    }
+  }
+
+  /**
+   * Cancel monitoring for a specific invoice
+   */
+  static cancelMonitoring(invoiceId: string): void {
+    const controller = this.activeMonitors.get(invoiceId)
+    if (controller) {
+      controller.abort()
+      this.activeMonitors.delete(invoiceId)
+      console.log(`🚫 Cancelled monitoring for: ${invoiceId}`)
+    }
+  }
+
+  /**
+   * Cancel all active monitoring
+   */
+  static cancelAllMonitoring(): void {
+    for (const [invoiceId, controller] of this.activeMonitors) {
+      controller.abort()
+      console.log(`🚫 Cancelled monitoring for: ${invoiceId}`)
+    }
+    this.activeMonitors.clear()
+  }
+
+  /**
+   * Get status of active monitors
+   */
+  static getActiveMonitors(): string[] {
+    return Array.from(this.activeMonitors.keys())
+  }
+
+  /**
+   * Check if an invoice is being monitored
+   */
+  static isMonitoring(invoiceId: string): boolean {
+    return this.activeMonitors.has(invoiceId)
+  }
+
+  /**
+   * Map Strike payment status to monitoring status
+   */
+  private static mapStrikeStatus(strikeState: string): PaymentMonitoringStatus['state'] {
+    switch (strikeState) {
+      case 'UNPAID':
+        return 'WAITING'
+      case 'PENDING':
+        return 'PENDING'
+      case 'PAID':
+        return 'PAID'
+      case 'FAILED':
+        return 'FAILED'
+      case 'EXPIRED':
+        return 'EXPIRED'
+      default:
+        return 'ERROR'
+    }
+  }
+
+  /**
+   * Sleep with abort signal support
+   */
+  private static sleep(ms: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(resolve, ms)
+      
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          clearTimeout(timeout)
+          reject(new Error('Aborted'))
+        })
+      }
+    })
+  }
+
+  /**
+   * Clean up monitoring resources
+   */
+  private static cleanup(invoiceId: string): void {
+    this.activeMonitors.delete(invoiceId)
+  }
+}
+
+// Export types
+export type {
+  PaymentMonitoringOptions,
+  PaymentMonitoringStatus
+} 

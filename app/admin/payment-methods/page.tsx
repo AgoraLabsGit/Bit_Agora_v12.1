@@ -7,7 +7,6 @@ import { CreditCard, Wallet, AlertTriangle, RefreshCw } from "lucide-react"
 // BitAgora Payment Settings - Following new architecture patterns
 import { usePaymentSettings } from './hooks/use-payment-settings'
 import { handleBitAgoraError } from '@/lib/errors'
-import { useFeatureFlag } from '@/lib/feature-flags'
 
 // New modular components
 import { PaymentMethodCard } from './components/PaymentMethodCard'
@@ -24,8 +23,7 @@ import {
 } from './components/ErrorBoundary'
 
 export default function PaymentMethodsPage() {
-  // Feature flag for credit card payments
-  const { isEnabled: creditCardEnabled, isArchived: creditCardArchived, feature: creditCardFeature } = useFeatureFlag('CREDIT_CARD_PAYMENTS')
+  // Use database settings instead of feature flags
   
   // Using our new custom hook following BitAgora patterns
   const {
@@ -160,7 +158,7 @@ export default function PaymentMethodsPage() {
             </CardContent>
           </Card>
 
-          {/* Payment Method Cards with Error Boundaries */}
+          {/* Payment Method Cards - Simple Database-Driven Checkboxes */}
           <PaymentMethodErrorBoundary>
             {/* Cash Payments */}
             <PaymentMethodCard
@@ -171,15 +169,16 @@ export default function PaymentMethodsPage() {
               onEnabledChange={(enabled) => handleCheckboxChange('acceptCash', enabled)}
             />
 
-            {/* Card Payments - Only show when enabled (minimal UI) */}
-            {creditCardEnabled && (
-              <PaymentMethodCard
-                title="Card Payments"
-                description="Credit/debit card processing with Stripe, PayPal, and Square"
-                icon={CreditCard}
-                enabled={creditCardEnabled}
-                onEnabledChange={(enabled) => handleCheckboxChange('acceptCards', enabled)}
-              >
+            {/* Card Payments - Always show, let user enable/disable */}
+            <PaymentMethodCard
+              title="Card Payments"
+              description="Credit/debit card processing with Stripe, PayPal, and Square"
+              icon={CreditCard}
+              enabled={formData.acceptCards}
+              onEnabledChange={(enabled) => handleCheckboxChange('acceptCards', enabled)}
+              status={formData.acceptCards ? 'active' : 'disabled'}
+            >
+              {formData.acceptCards && (
                 <div className="space-y-4">
                   {/* Credit card configuration */}
                   <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -218,8 +217,8 @@ export default function PaymentMethodsPage() {
                     </div>
                   </div>
                 </div>
-              </PaymentMethodCard>
-            )}
+              )}
+            </PaymentMethodCard>
           </PaymentMethodErrorBoundary>
 
           {/* Cryptocurrency Payments with Error Boundary */}
