@@ -369,6 +369,18 @@
 - **Compliance**: Meets international payment processing regulations
 - **Self-Hosted Option**: Merchant-controlled payment infrastructure
 
+#### **🌎 Dynamic Payment Provider Architecture (NEW - July 2025)**
+- **Argentina-First MVP**: Mercado Pago QR invoice generation system
+- **Provider Interface System**: Modular payment provider architecture for multi-country support
+- **Country-Specific Configuration**: Argentina, Brazil, Mexico, Colombia, Chile, Peru, Uruguay
+- **Dynamic QR Generation**: Real-time QR invoice creation with embedded payment amounts
+- **Multi-Currency Support**: ARS, BRL, MXN, COP, CLP, PEN, UYU with proper decimal handling
+- **Webhook Integration**: Payment status monitoring across all supported countries
+- **Testing Lab Integration**: Isolated development environment for safe provider testing
+- **Feature Flag System**: Safe rollout with instant rollback capabilities
+- **Provider Registry**: Auto-detection of merchant location and optimal payment methods
+- **Implementation Strategy**: 4-week phased rollout starting with Argentina MVP
+
 ### **🎯 Implementation Strategy**
 - **Phase 1 Priority**: Tipping system (enhances MVP completion)
 - **Phase 2 Grouping**: Advanced features after MVP1 completion
