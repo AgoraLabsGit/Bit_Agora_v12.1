@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Header } from '@/components/ui/header'
+import { TestTube, Zap, DollarSign } from 'lucide-react'
 
 export default function TestConversionPage() {
   const [testAmount, setTestAmount] = useState(25.00)
@@ -45,53 +47,99 @@ export default function TestConversionPage() {
   }
 
   return (
-    <div className="container mx-auto p-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">BitAgora Conversion Rate Test</h1>
-      
-      <Card className="p-6 mb-6">
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="amount">Test Amount (USD)</Label>
-            <Input
-              id="amount"
-              type="number"
-              value={testAmount}
-              onChange={(e) => setTestAmount(parseFloat(e.target.value) || 0)}
-              step="0.01"
-              min="0.01"
-              max="1000"
-            />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            <div className="flex items-center gap-2">
+              <TestTube className="h-6 w-6 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Conversion Rate Test</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <a href="/pos">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Back to POS
+                </a>
+              </Button>
+            </div>
           </div>
-          
-          <Button 
-            onClick={testConversions}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? 'Testing...' : 'Test Conversion Rates'}
-          </Button>
         </div>
-      </Card>
+      </header>
 
-      {results && (
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Test Results</h2>
-          <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-            {JSON.stringify(results, null, 2)}
-          </pre>
-        </Card>
-      )}
+      {/* Main Content */}
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="space-y-6">
+          {/* Test Controls */}
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Test Configuration</h2>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="amount">Test Amount (USD)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  value={testAmount}
+                  onChange={(e) => setTestAmount(parseFloat(e.target.value) || 0)}
+                  step="0.01"
+                  min="0.01"
+                  max="1000"
+                  className="mt-1"
+                />
+              </div>
+              
+              <Button 
+                onClick={testConversions}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? 'Testing...' : 'Test Conversion Rates'}
+              </Button>
+            </div>
+          </Card>
 
-      <Card className="p-6 mt-6">
-        <h2 className="text-xl font-semibold mb-4">What This Tests</h2>
-        <ul className="space-y-2 text-sm">
-          <li>✅ Strike API connection and authentication</li>
-          <li>✅ Lightning invoice generation</li>
-          <li>✅ USD to Bitcoin conversion rates</li>
-          <li>✅ Exchange rate caching and fallback</li>
-          <li>✅ Error handling and logging</li>
-        </ul>
-      </Card>
+          {/* Test Results */}
+          {results && (
+            <Card className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Test Results</h2>
+              <pre className="bg-muted p-4 rounded text-sm overflow-auto">
+                {JSON.stringify(results, null, 2)}
+              </pre>
+            </Card>
+          )}
+
+          {/* Test Information */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4">What This Tests</h2>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                Strike API connection and authentication
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                Lightning invoice generation
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                USD to Bitcoin conversion rates
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                Exchange rate caching and fallback
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                Error handling and logging
+              </li>
+            </ul>
+          </Card>
+        </div>
+      </main>
     </div>
   )
 } 

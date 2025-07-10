@@ -62,6 +62,7 @@
 - [x] **QR checkout screen enhancement** ✅ (July 8th, 2025)
 - [ ] **Payment status monitoring and real-time updates** (Next Priority)
 - [ ] **Complete transaction flow from cart to receipt** (85% Complete - QR display working)
+- [ ] **Tipping features on Checkout** (MVP1) - Add configurable tip percentages and custom tip amounts
 - [ ] Visual inventory indicators (red for 86'd items, orange for low stock)
 - [ ] Enhanced product management with emoji selection and 86'd status
 
@@ -283,6 +284,8 @@
 - **NEW**: Wallet-based customer journey analytics
 - **NEW**: Lightning lottery performance metrics
 - **NEW**: Social media engagement ROI tracking
+- **NEW**: Real-time monitoring of Business Wallet Funds (MVP2) - Live balance tracking for Bitcoin, Lightning, and USDT wallets with alerts
+- **NEW**: Invoice generation + email sending (MVP2) - Automated invoice creation and email delivery for transactions
 
 ### CRM & Customer Management
 - Customer database and profiles
@@ -306,6 +309,7 @@
 - Bank transfer capabilities
 - Payment processor management
 - Multi-currency support
+- **NEW**: Bitcoin PayServer Integration (MVP2) - Non-US crypto and fiat payment processing for international markets
 
 ### Advanced Inventory Management
 - Real-time stock tracking and alerts
@@ -314,15 +318,72 @@
 - Advanced product categorization and tagging
 - **Product Upload from legacy POS system** (Phase 3 integration)
 - **Enhanced product discount system** (time-based, seasonal, limited-time offers)
+- **NEW**: Advanced POS product filtering (MVP2) - Brand, gender, size, custom filters for diverse retail types
+- **NEW**: User-configurable filter system - Merchants can create custom product filters for their specific retail needs
+
+---
+
+## 🆕 **NEW FEATURES ADDED - July 10, 2025**
+
+### **🔥 MVP1 Features (Phase 1)**
+
+#### **💰 Tipping System Enhancement**
+- **Configurable Tip Percentages**: 15%, 18%, 20%, 25% default options
+- **Custom Tip Amounts**: Manual tip entry capability  
+- **Tip Calculation**: Automatic calculation with tax consideration
+- **Payment Integration**: Seamless tip inclusion in all payment methods
+- **Admin Configuration**: Customizable tip percentages in admin settings
+- **Implementation Priority**: High - Enhances transaction value and customer experience
+
+### **🚀 MVP2 Features (Phase 2)**
+
+#### **📧 Invoice Generation & Email System**
+- **Automated Invoice Creation**: Professional invoice generation for all transactions
+- **Email Delivery**: Automatic email sending to customers
+- **Invoice Templates**: Customizable invoice layouts with business branding
+- **Tax Documentation**: Proper tax breakdown and compliance information
+- **Transaction History**: Invoice archival and retrieval system
+- **Integration**: Works with all payment methods (crypto, fiat, QR)
+
+#### **🔍 Advanced Product Filtering System**
+- **Multi-Category Filtering**: Brand, gender, size, color, type, price range
+- **Custom Filter Creation**: Merchants can create industry-specific filters
+- **Retail Variety Support**: Optimized for clothing, electronics, food, services
+- **User-Configurable**: Admin interface to setup custom product attributes
+- **POS Integration**: Real-time filtering in POS interface
+- **Search Enhancement**: Combines with existing search for powerful product discovery
+
+#### **💼 Real-Time Business Wallet Monitoring**
+- **Live Balance Tracking**: Real-time Bitcoin, Lightning, and USDT wallet balances
+- **Multi-Wallet Support**: Monitor multiple wallets across different networks
+- **Alert System**: Configurable alerts for low balances, large transactions
+- **Dashboard Integration**: Wallet status in admin dashboard
+- **Security Monitoring**: Unusual transaction pattern detection
+- **Threshold Management**: Automatic notifications for vault transfer recommendations
+
+#### **🏦 Bitcoin PayServer Integration**
+- **Non-US Market Support**: International crypto payment processing
+- **Fiat On-Ramp**: Crypto-to-fiat conversion capabilities
+- **Payment Processing**: Alternative to Strike for unsupported regions
+- **Multi-Currency**: Support for various fiat currencies
+- **Compliance**: Meets international payment processing regulations
+- **Self-Hosted Option**: Merchant-controlled payment infrastructure
+
+### **🎯 Implementation Strategy**
+- **Phase 1 Priority**: Tipping system (enhances MVP completion)
+- **Phase 2 Grouping**: Advanced features after MVP1 completion
+- **Market Research**: Validate filtering needs across different retail types
+- **Geographic Expansion**: PayServer enables international market entry
+- **User Experience**: All features designed for seamless POS integration
 
 ---
 
 **Development Philosophy**: Build solid MVP foundation in Phase 1, then expand capabilities in Phase 2. No Phase 2 features until Phase 1 is production-ready.
 
-**Last Updated**: July 9, 2025  
-**Current Sprint Focus**: Admin panel enhancement complete, onboarding data integration, feature management system, and business profile management
+**Last Updated**: July 10, 2025  
+**Current Sprint Focus**: USDT Ethereum compatibility fixes, Strike Lightning integration, new MVP feature planning
 
-**Recent Additions**: Product management enhancements, security features, wallet monitoring system, and UI/UX improvements from user feedback
+**Recent Additions**: Tipping system (MVP1), Invoice generation & email (MVP2), Advanced product filtering (MVP2), Real-time wallet monitoring (MVP2), Bitcoin PayServer integration (MVP2), USDT Ethereum Trust Wallet compatibility fixes
 
 ---
 

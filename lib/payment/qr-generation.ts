@@ -87,8 +87,10 @@ export async function generateCryptoQR(
             invoiceId = lightningData.invoiceId
             expires = new Date(lightningData.expires)
             
-            // Use the REAL exchange rate from Strike API (not crypto exchange service)
+            // Use the REAL exchange rate from Strike API
+            console.log('🔥 Lightning data received:', lightningData)
             const strikeExchangeRate = lightningData.exchangeRate || 45000
+            console.log('🔥 Using exchange rate:', strikeExchangeRate)
             const btcAmount = usdAmount / strikeExchangeRate
             const satoshiAmount = Math.round(btcAmount * 100000000) // Convert to satoshis
             
@@ -141,29 +143,47 @@ export async function generateCryptoQR(
 
       case 'bitcoin':
       case 'btc':
-        // Bitcoin on-chain payments - Use crypto exchange service for consistent rates
+        // Bitcoin on-chain payments - Use same Strike API approach as Lightning
         try {
           console.log('₿ Generating Bitcoin payment QR')
-          const btcConversion = await cryptoExchangeService.convertUSDToBitcoin(usdAmount)
           
-          if (!btcConversion.success) {
-            throw new Error(btcConversion.error || 'Failed to convert USD to Bitcoin')
+          // Use the same Strike API rate that Lightning uses (working correctly)
+          const response = await fetch('/api/lightning/generate-invoice', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              amount: usdAmount,
+              description: `BitAgora Bitcoin Payment - $${usdAmount.toFixed(2)}`
+            })
+          })
+          
+          const result = await response.json()
+          
+          if (result.success && result.data && result.data.exchangeRate) {
+            // Use the real Strike exchange rate from the API
+            const strikeExchangeRate = result.data.exchangeRate
+            const btcAmount = usdAmount / strikeExchangeRate
+            
+            address = fallbackAddresses.bitcoin
+            qrContent = `bitcoin:${address}?amount=${btcAmount.toFixed(8)}`
+            
+            // Validate address
+            isValid = validateCryptoAddress(address, 'bitcoin').isValid
+            
+            conversionResult = {
+              success: true,
+              cryptoAmount: btcAmount,
+              formattedAmount: `${btcAmount.toFixed(8)} BTC`,
+              exchangeRate: strikeExchangeRate
+            }
+            
+            console.log(`✅ Bitcoin QR generated: $${usdAmount} → ${btcAmount.toFixed(8)} BTC`)
+            console.log(`📊 Strike exchange rate: $${strikeExchangeRate.toLocaleString()}/BTC`)
+          } else {
+            throw new Error('Failed to get current exchange rate from Strike API')
           }
-          
-          address = fallbackAddresses.bitcoin
-          qrContent = `bitcoin:${address}?amount=${btcConversion.cryptoAmount.toFixed(8)}`
-          
-          // Validate address
-          isValid = validateCryptoAddress(address, 'bitcoin').isValid
-          
-          conversionResult = {
-            success: true,
-            cryptoAmount: btcConversion.cryptoAmount,
-            formattedAmount: btcConversion.formattedAmount,
-            exchangeRate: btcConversion.exchangeRate
-          }
-          
-          console.log(`✅ Bitcoin QR generated: $${usdAmount} → ${btcConversion.formattedAmount}`)
         } catch (btcError) {
           console.error('❌ Bitcoin QR generation failed:', btcError)
           throw new Error('Failed to generate Bitcoin payment QR')
@@ -172,7 +192,7 @@ export async function generateCryptoQR(
 
       case 'usdt_ethereum':
       case 'usdt-eth':
-        // USDT on Ethereum - Use ERC-20 token transfer format (ERC-681 standard)
+        // USDT on Ethereum - Use Trust Wallet and universal wallet compatible format
         try {
           console.log('💰 Generating USDT (Ethereum) payment QR')
           const usdtEthConversion = await cryptoExchangeService.convertUSDToUSDT(usdAmount)
@@ -185,11 +205,9 @@ export async function generateCryptoQR(
           const usdtContractAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
           address = fallbackAddresses.usdt_ethereum // recipient address
           
-          // Convert to USDT atomic units (6 decimals for USDT)
-          const usdtAmountInAtomicUnits = Math.round(usdtEthConversion.cryptoAmount * 1000000)
-          
-          // ERC-681 standard format for ERC-20 token transfer
-          qrContent = `ethereum:${usdtContractAddress}/transfer?address=${address}&uint256=${usdtAmountInAtomicUnits}`
+          // Use Trust Wallet and universal wallet compatible format
+          // This format is supported by Trust Wallet, MetaMask, and most other wallets
+          qrContent = `ethereum:${address}?contractAddress=${usdtContractAddress}&decimal=6&symbol=USDT&amount=${usdtEthConversion.cryptoAmount}`
           
           // Validate Ethereum address
           isValid = validateCryptoAddress(address, 'usdt_ethereum').isValid
@@ -204,7 +222,8 @@ export async function generateCryptoQR(
           console.log(`✅ USDT (Ethereum) QR generated: $${usdAmount} → ${usdtEthConversion.formattedAmount}`)
           console.log(`📊 USDT Contract: ${usdtContractAddress}`)
           console.log(`📊 Recipient: ${address}`)
-          console.log(`📊 Amount: ${usdtAmountInAtomicUnits} (${usdtEthConversion.cryptoAmount} USDT)`)
+          console.log(`📊 Amount: ${usdtEthConversion.cryptoAmount} USDT`)
+          console.log(`📊 QR Format: Trust Wallet compatible`)
         } catch (usdtEthError) {
           console.error('❌ USDT (Ethereum) QR generation failed:', usdtEthError)
           throw new Error('Failed to generate USDT (Ethereum) payment QR')

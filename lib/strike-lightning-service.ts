@@ -114,7 +114,7 @@ export class StrikeLightningService {
         invoiceId: `dev-mock-${Date.now()}`,
         amount: usdAmount,
         qrContent: `lnbc${Math.round(usdAmount * 100000)}n1pjhm9j7pp5zq0q6p8p9p0p1p2p3p4p5p6p7p8p9p0p1p2p3p4p5p6p7p8p9p0p1`,
-        expires: new Date(Date.now() + LIGHTNING_CONFIG.INVOICE_EXPIRY_SECONDS * 1000),
+        expires: new Date(Date.now() + LIGHTNING_CONFIG.INVOICE_EXPIRY),
         paymentRequest: `lnbc${Math.round(usdAmount * 100000)}n1pjhm9j7pp5zq0q6p8p9p0p1p2p3p4p5p6p7p8p9p0p1p2p3p4p5p6p7p8p9p0p1`,
         exchangeRate: 45000,
         description
@@ -161,8 +161,8 @@ export class StrikeLightningService {
       // Parse expiration
       const expirationDate = new Date(quote.expiration)
       
-      // Get exchange rate from the quote
-      const exchangeRate = parseFloat(quote.conversionRate?.amount || '45000')
+      // Get current Bitcoin exchange rate from Strike API (reliable method)
+      const exchangeRate = await this.getExchangeRate()
 
       const result: StrikeLightningInvoice = {
         invoiceId: invoice.invoiceId,
@@ -191,7 +191,7 @@ export class StrikeLightningService {
         invoiceId: `failed-${Date.now()}`,
         amount: usdAmount,
         qrContent: `lnbc${Math.round(usdAmount * 100000)}n1pjhm9j7pp5fallback${Date.now()}`,
-        expires: new Date(Date.now() + LIGHTNING_CONFIG.INVOICE_EXPIRY_SECONDS * 1000),
+        expires: new Date(Date.now() + LIGHTNING_CONFIG.INVOICE_EXPIRY),
         paymentRequest: `lnbc${Math.round(usdAmount * 100000)}n1pjhm9j7pp5fallback${Date.now()}`,
         exchangeRate: 45000,
         description
@@ -278,7 +278,7 @@ export class StrikeLightningService {
       if (onUpdate) {
         onUpdate({
           state: 'ERROR',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           updated: new Date().toISOString()
         })
       }
@@ -313,7 +313,7 @@ export class StrikeLightningService {
       
       return {
         success: false,
-        message: `Connection failed: ${error.message}`
+        message: `Connection failed: ${error instanceof Error ? error.message : String(error)}`
       }
     }
   }
