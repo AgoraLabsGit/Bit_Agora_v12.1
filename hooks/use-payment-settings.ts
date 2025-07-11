@@ -1,3 +1,22 @@
+/**
+ * BitAgora POS Payment Settings Hook
+ * 
+ * General-purpose hook for reading and displaying payment method configuration
+ * Used by POS components to show available payment options to customers
+ * 
+ * Features:
+ * - Fetches enabled payment methods from API
+ * - Generates payment options array for UI display  
+ * - Supports crypto, QR, cash, and card payment methods
+ * - Provides utility functions for payment method filtering
+ * 
+ * Usage: POS payment selection, checkout components
+ * Note: For admin payment configuration, see app/admin/payment-methods/hooks/use-payment-settings.ts
+ * 
+ * @version 2.0.0
+ * @author BitAgora Development Team
+ */
+
 // hooks/use-payment-settings.ts
 // Centralized payment settings hook for modular payment components
 
@@ -16,6 +35,8 @@ export interface PaymentSettings {
   stripeEnabled?: boolean
   stripePublishableKey?: string
   acceptCash?: boolean
+  mercadoPagoEnabled?: boolean
+  pixEnabled?: boolean
 }
 
 export interface QRProvider {
@@ -28,7 +49,7 @@ export interface QRProvider {
 
 export interface PaymentOption {
   id: string
-  category: 'crypto' | 'qr' | 'cash' | 'card'
+  category: 'crypto' | 'qr' | 'cash' | 'card' | 'regional'
   name: string
   enabled: boolean
   icon?: string
@@ -67,7 +88,9 @@ export const usePaymentSettings = () => {
         usdtTronEnabled: false,
         stripeEnabled: false,
         cashEnabled: true,
-        qrCodeEnabled: false
+        qrCodeEnabled: false,
+        mercadoPagoEnabled: false,
+        pixEnabled: false
       }
       setPaymentSettings(fallbackSettings)
       return fallbackSettings
@@ -176,6 +199,29 @@ export const usePaymentSettings = () => {
         enabled: true,
         icon: '💳',
         description: 'Credit/Debit card'
+      })
+    }
+
+    // Regional Payment Methods
+    if (settings.mercadoPagoEnabled) {
+      options.push({
+        id: 'mercado-pago',
+        category: 'regional',
+        name: 'Mercado Pago',
+        enabled: true,
+        icon: '💙',
+        description: 'Latin America payments'
+      })
+    }
+
+    if (settings.pixEnabled) {
+      options.push({
+        id: 'pix',
+        category: 'regional',
+        name: 'PIX',
+        enabled: true,
+        icon: '🔹',
+        description: 'Brazil instant payments'
       })
     }
 

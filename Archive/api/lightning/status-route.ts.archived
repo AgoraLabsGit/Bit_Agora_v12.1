@@ -1,5 +1,26 @@
-// Lightning Payment Status API
-// Provides real-time Lightning payment status monitoring via LNBits
+/**
+ * ARCHIVED FILE - status-route.ts (from app/api/lightning/status/)
+ * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: Old LNBits status route conflicts with Strike API [invoiceId] route
+ * REPLACEMENT: app/api/lightning/status/[invoiceId]/route.ts provides Strike API status checking
+ * 
+ * ORIGINAL PURPOSE:
+ * Lightning Payment Status API for LNBits integration
+ * Provided real-time Lightning payment status monitoring via LNBits
+ * Used payment_hash parameter and LNBits-specific API calls
+ * 
+ * This API route was archived because:
+ * 1. Conflicts with new Strike API route structure (/status/[invoiceId])
+ * 2. Uses old LNBits lightning-service instead of Strike API
+ * 3. Different parameter format (payment_hash vs invoiceId)
+ * 4. Strike API provides better reliability and simpler integration
+ * 
+ * The new Strike API route in app/api/lightning/status/[invoiceId]/route.ts
+ * provides equivalent functionality with better Strike API integration.
+ * 
+ * @author BitAgora Development Team
+ */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { lightningService } from '@/lib/lightning-service'

@@ -33,7 +33,6 @@
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.0",
     "lucide-react": "^0.294.0",
-    "multicoin-address-validator": "^0.5.26",
     "next": "^15.0.0",
     "postcss": "^8.4.0",
     "qrcode": "^1.5.4",

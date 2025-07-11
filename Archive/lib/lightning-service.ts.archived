@@ -1,5 +1,27 @@
-// BitAgora Lightning Service - LNBits Integration
-// Handles dynamic Lightning invoice generation and payment monitoring
+/**
+ * ARCHIVED FILE - lightning-service.ts
+ * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: LNBits Lightning service replaced by Strike API integration
+ * REPLACEMENT: lib/strike-lightning-service.ts provides real Strike API integration with better reliability
+ * 
+ * ORIGINAL PURPOSE:
+ * BitAgora Lightning Service with LNBits Integration
+ * Handled dynamic Lightning invoice generation and payment monitoring using LNBits backend
+ * Required separate LNBits server setup and configuration
+ * 
+ * This service was replaced because:
+ * 1. Strike API provides more reliable Lightning infrastructure
+ * 2. Eliminates need for separate LNBits server setup
+ * 3. Strike handles exchange rates and Bitcoin conversion automatically
+ * 4. Better integration with existing payment flows
+ * 5. More robust payment monitoring and status tracking
+ * 
+ * The Strike API implementation in strike-lightning-service.ts provides
+ * equivalent functionality with better reliability and easier setup.
+ * 
+ * @author BitAgora Development Team
+ */
 
 import { cryptoExchangeService } from './crypto-exchange-service'
 

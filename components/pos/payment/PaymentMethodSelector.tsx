@@ -1,3 +1,23 @@
+/**
+ * BitAgora POS Payment Method Selector
+ * 
+ * Main payment selection component with inline QR code generation and display
+ * Handles all payment method selection and crypto payment processing in one unified interface
+ * 
+ * Features:
+ * - Parent/child category selection (Crypto -> Lightning/Bitcoin/USDT, QR -> Providers, Cash)
+ * - Inline crypto QR generation with real-time Strike API integration
+ * - Static QR provider image display for uploaded QR codes
+ * - Payment status monitoring integration
+ * - Real-time amount conversion and exchange rate display
+ * 
+ * Current Phase: Supports Lightning (Strike API), Bitcoin, USDT, static QR, cash payments
+ * Next Phase: Enhanced payment status monitoring and receipt generation
+ * 
+ * @version 4.0.0
+ * @author BitAgora Development Team
+ */
+
 // /components/pos/payment/PaymentMethodSelector.tsx
 // Single-page payment method selection with proper amount conversion and validation
 
@@ -11,17 +31,26 @@ import { cn } from "@/lib/utils"
 import { CryptoQRCode } from '@/components/ui/crypto-qr-code'
 import { PaymentOption } from '@/hooks/use-payment-settings'
 import { generateCryptoQR, QRGenerationResult, validateQRResult } from '@/lib/payment/qr-generation'
+import { PaymentStatusBar } from './PaymentStatusBar'
+import { PaymentStatus } from '@/app/pos/hooks/use-payment-status'
 
 interface PaymentMethodSelectorProps {
   paymentOptions: PaymentOption[]
   selectedMethod: string | null
   onMethodSelect: (method: string) => void
   onCashPayment: () => void
+  onFiatPayment: (method: string) => void
   paymentSettings: any
   qrProviders: any[]
   amount: number
   isLoading?: boolean
   className?: string
+  // Payment status bar props
+  paymentStatus?: PaymentStatus
+  timeRemaining?: number | null
+  showPaymentStatus?: boolean
+  // Lightning invoice data callback
+  onLightningInvoiceGenerated?: (invoiceData: any) => void
 }
 
 type ParentCategory = 'crypto' | 'qr' | 'cash'
@@ -38,11 +67,16 @@ export const PaymentMethodSelector = ({
   selectedMethod,
   onMethodSelect,
   onCashPayment,
+  onFiatPayment,
   paymentSettings,
   qrProviders,
   amount,
   isLoading = false,
-  className
+  className,
+  paymentStatus,
+  timeRemaining,
+  showPaymentStatus = false,
+  onLightningInvoiceGenerated
 }: PaymentMethodSelectorProps) => {
   const [selectedParent, setSelectedParent] = useState<ParentCategory>('crypto')
   const [selectedChild, setSelectedChild] = useState<string | null>(null)
@@ -116,11 +150,11 @@ export const PaymentMethodSelector = ({
       
       const generateQR = async () => {
         try {
-          // Fix: Include all required parameters as identified in audit
+          // Fix: Use correct parameter signature (cryptoType, usdAmount, merchantId?)
           const result = await generateCryptoQR(
             selectedChild, 
             amount,
-            paymentSettings  // Added missing parameter from audit
+            paymentSettings?.merchantId  // Pass merchant ID instead of entire settings object
           )
           
           if (result && validateQRResult(result)) {
@@ -133,6 +167,12 @@ export const PaymentMethodSelector = ({
               exchangeRate: result.conversionResult?.exchangeRate,
               invoiceId: result.invoiceId || 'N/A'
           })
+          
+          // For Lightning invoices, call the callback with invoice data
+          if (selectedChild === 'lightning' && onLightningInvoiceGenerated && result.invoiceId) {
+            console.log('⚡ Lightning invoice generated successfully, starting monitoring')
+            onLightningInvoiceGenerated(result)
+          }
         } else {
           const errorMsg = result?.error || 'Failed to generate QR code'
           setQRError(errorMsg)
@@ -209,8 +249,8 @@ export const PaymentMethodSelector = ({
     setSelectedChild(methodId)
     onMethodSelect(methodId)
     
-    console.log('🔥 AFTER CLICK - SHOULD BE:', methodId)
-  }, [selectedChild, onMethodSelect])
+    // Crypto QR generation handled by useEffect
+  }, [selectedChild, onMethodSelect, selectedParent])
 
   const formatCryptoAmount = useCallback((qrData: QRGenerationResult, cryptoType: string) => {
     if (!qrData.conversionResult) return 'N/A'
@@ -390,6 +430,18 @@ export const PaymentMethodSelector = ({
               )}
             </CardContent>
           </Card>
+      )}
+
+      {/* Payment Status Bar - Under QR Code in Left Pane */}
+      {showPaymentStatus && paymentStatus && (
+        <div className="mt-4">
+          <PaymentStatusBar
+            paymentStatus={paymentStatus}
+            paymentMethod={selectedChild || undefined}
+            timeRemaining={timeRemaining}
+            className="w-full"
+          />
+        </div>
       )}
     </div>
   )

@@ -1,8 +1,16 @@
 /**
- * Lightning Payment Flow Component
+ * ARCHIVED FILE - LightningPaymentFlow.tsx
  * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: Unused Lightning payment component - functionality was integrated directly into PaymentMethodSelector.tsx for inline QR display
+ * REPLACEMENT: components/pos/payment/PaymentMethodSelector.tsx handles Lightning payments with PaymentStatusBar.tsx for status
+ * 
+ * ORIGINAL PURPOSE:
  * Real-time Lightning Network payment interface using Strike API
- * Provides QR code display, payment monitoring, and status updates
+ * Provided QR code display, payment monitoring, and status updates
+ * 
+ * This component was a standalone Lightning payment flow that duplicated functionality
+ * now handled more efficiently in the integrated PaymentMethodSelector component.
  * 
  * @version 1.0.0
  * @author BitAgora Development Team

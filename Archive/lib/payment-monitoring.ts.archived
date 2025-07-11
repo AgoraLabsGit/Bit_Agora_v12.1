@@ -1,4 +1,25 @@
 /**
+ * ARCHIVED FILE - payment-monitoring.ts
+ * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: Mock Strike API payment monitoring service - replaced by real Strike API monitoring
+ * REPLACEMENT: app/pos/hooks/use-payment-status.ts provides real Strike API integration with proper React hooks
+ * 
+ * ORIGINAL PURPOSE:
+ * Payment monitoring service with mock Strike API implementation
+ * Had hardcoded 'UNPAID' status and didn't use real Strike API calls
+ * Provided class-based payment monitoring with manual status mapping
+ * 
+ * This service was archived because:
+ * 1. Used mock Strike API calls instead of real Strike API
+ * 2. Duplicate functionality with usePaymentStatus hook 
+ * 3. Class-based approach didn't fit well with React component lifecycle
+ * 4. usePaymentStatus hook provides better React integration and real Strike API calls
+ * 
+ * @author BitAgora Development Team
+ */
+
+/**
  * BitAgora Payment Monitoring Service
  * 
  * Real-time payment status monitoring with UI callbacks

@@ -1,3 +1,24 @@
+/**
+ * BitAgora Admin Payment Settings Hook
+ * 
+ * Advanced hook for admin configuration of payment methods and settings
+ * Handles full CRUD operations for payment configuration management
+ * 
+ * Features:
+ * - Complete payment settings form management (crypto addresses, processors, security)
+ * - Payment fees configuration for each method
+ * - Payment credentials management (API keys, tokens)
+ * - QR provider file upload and management
+ * - Comprehensive error handling with BitAgora error types
+ * - Form validation and state management
+ * 
+ * Usage: Admin payment settings page only
+ * Note: For POS payment display, see hooks/use-payment-settings.ts
+ * 
+ * @version 3.0.0
+ * @author BitAgora Development Team
+ */
+
 // BitAgora Payment Settings Hook
 // Following BitAgora implementation patterns
 
@@ -29,11 +50,18 @@ const defaultFormData: PaymentFormData = {
   paypalEnabled: false,
   squareEnabled: false,
   
+  // Regional Payment Methods
+  mercadoPagoEnabled: false,
+  pixEnabled: false,
+  
   // Crypto Wallet Addresses
   bitcoinWalletAddress: '',
   bitcoinLightningAddress: '',
   usdtEthereumWalletAddress: '',
   usdtTronWalletAddress: '',
+  
+  // Strike API Integration
+  strikeApiKey: '',
   
   // Security Settings
   requireSignature: true,
@@ -48,7 +76,11 @@ const defaultFormData: PaymentFormData = {
   bitcoinDiscount: '',
   lightningDiscount: '',
   usdtEthDiscount: '',
-  usdtTronDiscount: ''
+  usdtTronDiscount: '',
+  
+  // Regional Payment Configuration
+  mercadoPagoRegion: 'argentina',
+  pixRegion: 'brazil'
 }
 
 const defaultFees: PaymentFees = {
@@ -59,13 +91,26 @@ const defaultFees: PaymentFees = {
   usdtTron: '0',
   stripe: '2.9',
   paypal: '3.5',
-  square: '2.6'
+  square: '2.6',
+  
+  // Regional Payment Fees
+  mercadoPago: '3.0',
+  pix: '0.5'
 }
 
 const defaultCredentials: PaymentCredentials = {
   stripeApiKey: '',
   paypalClientId: '',
-  squareApplicationId: ''
+  squareApplicationId: '',
+  
+  // Strike API Key for Lightning payments
+  strikeApiKey: '',
+  
+  // Regional Payment Credentials
+  mercadoPagoAccessToken: '',
+  mercadoPagoUserId: '',
+  pixApiKey: '',
+  pixCertificatePath: ''
 }
 
 export const usePaymentSettings = () => {

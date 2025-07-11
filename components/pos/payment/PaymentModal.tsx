@@ -3,17 +3,18 @@
 
 "use client"
 
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { flushSync } from 'react-dom'
+import { X, CheckCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { PaymentMethodSelector } from './PaymentMethodSelector'
-import { CryptoPaymentFlow } from './CryptoPaymentFlow'
 import { QRCodePaymentFlow } from './QRCodePaymentFlow'
 import { CashPaymentFlow } from './CashPaymentFlow'
 import { PaymentSummary } from './PaymentSummary'
 import { usePaymentSettings } from '@/hooks/use-payment-settings'
 import { CartItem } from '@/app/pos/types/product'
 import { TaxCalculationResult, TaxConfiguration } from '@/lib/tax-calculation'
+import { usePaymentStatus } from '@/app/pos/hooks/use-payment-status'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -44,23 +45,138 @@ export const PaymentModal = ({
 }: PaymentModalProps) => {
   const [currentFlow, setCurrentFlow] = useState<PaymentFlow>('selection')
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
+  const [paymentId, setPaymentId] = useState<string | null>(null)
+  const [showStatusMonitor, setShowStatusMonitor] = useState(false)
+  const [paymentState, setPaymentState] = useState<{
+    completed: boolean
+    transaction: any
+  }>({
+    completed: false,
+    transaction: null
+  })
   
   const { paymentSettings, qrProviders, paymentOptions, isLoading } = usePaymentSettings()
+  
+  // Payment status monitoring
+  const [lightningInvoiceData, setLightningInvoiceData] = useState<any>(null)
+  
+  // Create stable callback for payment completion
+  const handlePaymentComplete = useCallback((transactionId: string) => {
+    console.log('🎉 PaymentModal: handlePaymentComplete called with transactionId:', transactionId)
+    console.log('🎉 PaymentModal: selectedMethod:', selectedMethod)
+    console.log('🎉 PaymentModal: paymentState.completed:', paymentState.completed)
+    
+    const transactionData = {
+      transactionId,
+      paymentMethod: selectedMethod || 'unknown',
+      paymentStatus: 'completed'
+    }
+    
+    console.log('🎉 PaymentModal: Setting payment state to completed with transaction data:', transactionData)
+    
+    // Force immediate state update to ensure overlay shows immediately
+    flushSync(() => {
+      setPaymentState({
+        completed: true,
+        transaction: transactionData
+      })
+    })
+    
+    console.log('🎉 PaymentModal: Payment state updated - overlay should now be visible')
+    
+    // After a longer delay, trigger the external completion callback to allow users to see the success overlay
+    setTimeout(() => {
+      try {
+        console.log('🎉 PaymentModal: Calling external onPaymentComplete callback')
+        if (onPaymentComplete) {
+          onPaymentComplete(transactionData)
+        }
+        
+        console.log('🎉 PaymentModal: Closing modal')
+        onClose()
+        
+      } catch (error) {
+        console.error('❌ Error in completion callback:', error)
+        // Force close anyway
+        onClose()
+      }
+    }, 3000) // Increased delay to allow users to see the success overlay
+  }, [selectedMethod, onPaymentComplete, onClose])
+
+  const {
+    status: paymentStatus,
+    lastUpdate,
+    isMonitoring,
+    timeRemaining,
+    startMonitoring,
+    stopMonitoring,
+    isPaymentComplete,
+    isPaymentPending,
+    markInvoiceGenerated
+  } = usePaymentStatus({
+    paymentId: paymentId || undefined,
+    paymentMethod: selectedMethod || undefined,
+    invoiceId: lightningInvoiceData?.invoiceId,
+    expirationTime: lightningInvoiceData?.expires ? new Date(lightningInvoiceData.expires) : undefined,
+    onPaymentComplete: handlePaymentComplete,
+    onPaymentFailed: (error) => {
+      console.error('Payment failed:', error)
+      setShowStatusMonitor(false)
+    },
+    onInvoiceGenerated: () => {
+      console.log('✅ Invoice generated callback triggered')
+    }
+  })
 
   // Reset to selection when modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrentFlow('selection')
       setSelectedMethod(null)
+      setPaymentId(null)
+      setShowStatusMonitor(false)
+      setPaymentState({
+        completed: false,
+        transaction: null
+      })
+      setLightningInvoiceData(null)
+      stopMonitoring()
     }
-  }, [isOpen])
+  }, [isOpen, stopMonitoring])
+
+  // CRITICAL FIX: Start monitoring ONLY when Lightning invoice is generated
+  useEffect(() => {
+    // Only start monitoring for Lightning payments with valid Strike invoice
+    if (lightningInvoiceData?.invoiceId && selectedMethod === 'lightning' && !isMonitoring) {
+      console.log('⚡ Starting Lightning payment monitoring for invoice:', lightningInvoiceData.invoiceId)
+      
+      // Small delay to ensure React has processed the state updates
+      setTimeout(() => {
+        startMonitoring()
+      }, 50)
+    }
+  }, [lightningInvoiceData?.invoiceId, selectedMethod, isMonitoring, startMonitoring])
 
   // Handle method selection (keep all methods in selection for inline display)
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method)
     
+    // For crypto methods, prepare payment monitoring (but don't start yet)
+    if (method === 'lightning' || method === 'bitcoin' || method === 'usdt') {
+      const newPaymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      setPaymentId(newPaymentId)
+      setShowStatusMonitor(true)
+      // DON'T start monitoring here - wait for invoice to be generated
+    }
+    
     // All crypto methods (including Lightning) stay in selection mode for inline QR display
     // This allows users to see all payment options and switch between them
+  }
+
+  // Handle fiat payment method selection - placeholder for Test Lab
+  const handleFiatPayment = (method: string) => {
+    console.log('🧪 Fiat payment placeholder:', method)
+    // Test Lab: This would route to fiat payment flows
   }
 
   // Handle cash payment (route to cash flow immediately)
@@ -73,6 +189,11 @@ export const PaymentModal = ({
   const handleStartPayment = () => {
     if (!selectedMethod) return
     
+    // Generate payment ID and start monitoring
+    const newPaymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setPaymentId(newPaymentId)
+    setShowStatusMonitor(true)
+    
     // Route to appropriate flow for payment processing
     // Crypto methods stay inline - no routing needed
     if (selectedMethod === 'qr-code' || qrProviders.some(p => p.id === selectedMethod)) {
@@ -80,22 +201,16 @@ export const PaymentModal = ({
     }
   }
 
-  // Handle payment completion
-  const handlePaymentComplete = (transactionData?: {
-    transactionId: string
-    paymentMethod: string
-    paymentStatus: string
-    amountTendered?: number
-    change?: number
-  }) => {
-    onPaymentComplete?.(transactionData)
-    onClose()
-  }
+
+
+
 
   // Handle back navigation
   const handleBack = () => {
     setCurrentFlow('selection')
     setSelectedMethod(null)
+    setShowStatusMonitor(false)
+    stopMonitoring()
   }
 
   // Get current flow title
@@ -145,7 +260,25 @@ export const PaymentModal = ({
         </div>
 
         {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 h-[calc(85vh-130px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 h-[calc(85vh-130px)] relative">
+          {/* Payment Success Overlay */}
+          {paymentState.completed && (
+            <div className="absolute inset-0 bg-green-600/95 flex items-center justify-center z-10 backdrop-blur-sm">
+              <div className="text-center text-white">
+                <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Payment Successful!</h3>
+                <p className="text-green-100 mb-4">
+                  Transaction ID: {paymentState.transaction?.transactionId?.slice(-8)}...
+                </p>
+                <p className="text-green-200 text-sm">
+                  Generating receipt...
+                </p>
+              </div>
+            </div>
+          )}
+          
           {/* Left Column - Payment Selection and QR Display OR Flow */}
           <div className="lg:col-span-2 p-6 bg-background overflow-y-auto max-h-full">
             {currentFlow === 'selection' && (
@@ -154,21 +287,20 @@ export const PaymentModal = ({
                 selectedMethod={selectedMethod}
                 onMethodSelect={handleMethodSelect}
                 onCashPayment={handleCashPayment}
+                onFiatPayment={handleFiatPayment}
                 paymentSettings={paymentSettings}
                 qrProviders={qrProviders}
                 amount={amount}
                 isLoading={isLoading}
-              />
-            )}
-
-            {currentFlow === 'crypto' && selectedMethod && paymentSettings && (
-              <CryptoPaymentFlow
-                method={selectedMethod}
-                amount={amount}
-                cartItems={cartItems}
-                paymentSettings={paymentSettings}
-                onPaymentComplete={handlePaymentComplete}
-                onBack={handleBack}
+                paymentStatus={paymentStatus}
+                timeRemaining={timeRemaining}
+                showPaymentStatus={showStatusMonitor}
+                onLightningInvoiceGenerated={(invoiceData) => {
+                  console.log('⚡ Lightning invoice generated:', invoiceData?.invoiceId)
+                  setLightningInvoiceData(invoiceData)
+                  
+                  // The useEffect above will handle starting monitoring when invoice data is available
+                }}
               />
             )}
 
@@ -177,8 +309,8 @@ export const PaymentModal = ({
                 amount={amount}
                 cartItems={cartItems}
                 qrProviders={qrProviders}
-                onPaymentComplete={handlePaymentComplete}
-                onBack={handleBack}
+                onPaymentComplete={onPaymentComplete || (() => {})}
+                onBack={() => setCurrentFlow('selection')}
               />
             )}
 
@@ -186,39 +318,28 @@ export const PaymentModal = ({
               <CashPaymentFlow
                 amount={amount}
                 cartItems={cartItems}
-                onPaymentComplete={handlePaymentComplete}
-                onBack={handleBack}
+                onPaymentComplete={onPaymentComplete || (() => {})}
+                onBack={() => setCurrentFlow('selection')}
               />
             )}
-
-            {/* Lightning is now handled inline in PaymentMethodSelector */}
           </div>
 
-          {/* Right Column - Payment Summary (Full-Height Grey Background) */}
-          <div className="lg:col-span-1 bg-muted/20 border-l border-border p-6 flex flex-col min-h-0">
-              <PaymentSummary
-                amount={amount}
-                cartItems={cartItems}
-                selectedMethod={selectedMethod}
-                paymentMethodName={getSelectedMethodName() || undefined}
-                taxCalculation={taxCalculation}
-                taxConfig={taxConfig}
-                showItemDetails={true}
-              className="flex-1 min-h-0"
-              />
+          {/* Right Column - Payment Summary */}
+          <div className="lg:col-span-1 border-l bg-muted/30 p-6 overflow-y-auto max-h-full">
+            <PaymentSummary
+              cartItems={cartItems}
+              amount={amount}
+              selectedMethod={selectedMethod}
+              paymentMethodName={paymentOptions.find(opt => opt.id === selectedMethod)?.name}
+              taxCalculation={taxCalculation}
+              taxConfig={taxConfig}
+            />
           </div>
         </div>
 
         {/* Footer */}
         <div className="border-t p-4 pb-6 bg-muted/20">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              {currentFlow === 'selection' ? (
-                selectedMethod ? `${getSelectedMethodName()} selected` : 'Select a payment method'
-              ) : (
-                `Processing ${getSelectedMethodName()} payment`
-              )}
-            </div>
+          <div className="flex justify-end items-center">
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose} size="sm">
                 Cancel

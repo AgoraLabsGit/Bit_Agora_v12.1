@@ -205,6 +205,9 @@ export class PaymentSettingsAPI {
       usdtEthereumWalletAddress: apiData.usdtEthereumWalletAddress || '',
       usdtTronWalletAddress: apiData.usdtTronWalletAddress || '',
       
+      // Strike API Integration
+      strikeApiKey: apiData.strikeApiKey || '',
+      
       // Security Settings
       requireSignature: apiData.requireSignature,
       requireId: apiData.requireId,
@@ -218,7 +221,13 @@ export class PaymentSettingsAPI {
       bitcoinDiscount: '',
       lightningDiscount: '',
       usdtEthDiscount: '',
-      usdtTronDiscount: ''
+      usdtTronDiscount: '',
+      
+      // Regional Payment Configuration
+      mercadoPagoEnabled: apiData.mercadoPagoEnabled || false,
+      pixEnabled: apiData.pixEnabled || false,
+      mercadoPagoRegion: apiData.mercadoPagoRegion || 'argentina',
+      pixRegion: apiData.pixRegion || 'brazil'
     }
   }
 
@@ -234,12 +243,17 @@ export class PaymentSettingsAPI {
       bitcoinLightningAddress: formData.bitcoinLightningAddress,
       usdtEthereumWalletAddress: formData.usdtEthereumWalletAddress,
       usdtTronWalletAddress: formData.usdtTronWalletAddress,
+      strikeApiKey: formData.strikeApiKey,
       stripeEnabled: formData.stripeEnabled,
       paypalEnabled: formData.paypalEnabled,
       squareEnabled: formData.squareEnabled,
+      mercadoPagoEnabled: formData.mercadoPagoEnabled,
+      pixEnabled: formData.pixEnabled,
       requireSignature: formData.requireSignature,
       requireId: formData.requireId,
-      autoSettle: formData.autoSettle
+      autoSettle: formData.autoSettle,
+      mercadoPagoRegion: formData.mercadoPagoRegion,
+      pixRegion: formData.pixRegion
     }
   }
 
@@ -258,7 +272,9 @@ export class PaymentSettingsAPI {
       usdtTron: feesObject.usdtTron || '0',
       stripe: feesObject.stripe || '2.9',
       paypal: feesObject.paypal || '3.5',
-      square: feesObject.square || '2.6'
+      square: feesObject.square || '2.6',
+      mercadoPago: feesObject.mercadoPago || '3.2',
+      pix: feesObject.pix || '1.5'
     }
   }
 
@@ -274,11 +290,19 @@ export class PaymentSettingsAPI {
     const stripeCredentials = apiData.find(c => c.processorName === 'stripe')
     const paypalCredentials = apiData.find(c => c.processorName === 'paypal')
     const squareCredentials = apiData.find(c => c.processorName === 'square')
+    const strikeCredentials = apiData.find(c => c.processorName === 'strike')
     
     return {
       stripeApiKey: stripeCredentials?.apiKeyEncrypted || '',
       paypalClientId: paypalCredentials?.clientIdEncrypted || '',
-      squareApplicationId: squareCredentials?.applicationIdEncrypted || ''
+      squareApplicationId: squareCredentials?.applicationIdEncrypted || '',
+      strikeApiKey: strikeCredentials?.apiKeyEncrypted || '',
+      
+      // Regional Payment Credentials
+      mercadoPagoAccessToken: '',
+      mercadoPagoUserId: '',
+      pixApiKey: '',
+      pixCertificatePath: ''
     }
   }
 
@@ -303,6 +327,13 @@ export class PaymentSettingsAPI {
       credentials.push({
         processorName: 'square',
         applicationIdEncrypted: formData.squareApplicationId
+      })
+    }
+    
+    if (formData.strikeApiKey) {
+      credentials.push({
+        processorName: 'strike',
+        apiKeyEncrypted: formData.strikeApiKey
       })
     }
     

@@ -236,7 +236,8 @@ export default function PaymentMethodsPage() {
                 bitcoinDiscount: formData.bitcoinDiscount,
                 lightningDiscount: formData.lightningDiscount,
                 usdtEthDiscount: formData.usdtEthDiscount,
-                usdtTronDiscount: formData.usdtTronDiscount
+                usdtTronDiscount: formData.usdtTronDiscount,
+                strikeApiKey: formData.strikeApiKey
               }}
               onFieldChange={handleInputChange}
             />

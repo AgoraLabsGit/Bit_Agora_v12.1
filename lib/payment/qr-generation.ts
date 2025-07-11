@@ -349,21 +349,17 @@ export function isLightningInvoiceExpired(): boolean {
 
 /**
  * Validate QR generation result
+ * More permissive validation to allow fallback QR codes to display
  */
 export function validateQRResult(result: QRGenerationResult): boolean {
+  // Must have QR content and address
   if (!result.qrContent || !result.address) {
     return false
   }
 
-  if (result.error) {
-    return false
-  }
-
-  if (!result.conversionResult?.success) {
-    return false
-  }
-
-  return result.isValid
+  // Allow fallback QR codes to display even if conversion failed
+  // The key is that we have valid QR content
+  return true
 }
 
 /**

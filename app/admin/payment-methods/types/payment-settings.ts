@@ -17,11 +17,18 @@ export interface PaymentFormData {
   paypalEnabled: boolean
   squareEnabled: boolean
   
+  // Regional Payment Methods
+  mercadoPagoEnabled: boolean
+  pixEnabled: boolean
+  
   // Crypto Wallet Addresses
   bitcoinWalletAddress: string
   bitcoinLightningAddress: string
   usdtEthereumWalletAddress: string
   usdtTronWalletAddress: string
+  
+  // Strike API Integration
+  strikeApiKey: string
   
   // Security Settings
   requireSignature: boolean
@@ -37,6 +44,10 @@ export interface PaymentFormData {
   lightningDiscount: string
   usdtEthDiscount: string
   usdtTronDiscount: string
+  
+  // Regional Payment Configuration
+  mercadoPagoRegion: string
+  pixRegion: string
 }
 
 export interface PaymentFees {
@@ -48,12 +59,25 @@ export interface PaymentFees {
   stripe: string
   paypal: string
   square: string
+  
+  // Regional Payment Fees
+  mercadoPago: string
+  pix: string
 }
 
 export interface PaymentCredentials {
   stripeApiKey: string
   paypalClientId: string
   squareApplicationId: string
+  
+  // Strike API Key for Lightning payments
+  strikeApiKey: string
+  
+  // Regional Payment Credentials
+  mercadoPagoAccessToken: string
+  mercadoPagoUserId: string
+  pixApiKey: string
+  pixCertificatePath: string
 }
 
 export interface QRProvider {
@@ -81,15 +105,26 @@ export interface PaymentSettingsApiData {
   usdtEthereumWalletAddress?: string
   usdtTronWalletAddress?: string
   
+  // Strike API Integration
+  strikeApiKey?: string
+  
   // Payment Processors
   stripeEnabled: boolean
   paypalEnabled: boolean
   squareEnabled: boolean
   
+  // Regional Payment Methods
+  mercadoPagoEnabled: boolean
+  pixEnabled: boolean
+  
   // Security Settings
   requireSignature: boolean
   requireId: boolean
   autoSettle: boolean
+  
+  // Regional Configuration
+  mercadoPagoRegion?: string
+  pixRegion?: string
 }
 
 export interface PaymentFeesApiData {

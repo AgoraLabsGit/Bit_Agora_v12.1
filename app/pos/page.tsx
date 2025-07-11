@@ -23,6 +23,8 @@ import { TransactionReceipt } from './components/TransactionReceipt'
 import { TaxCalculator, TaxConfiguration, TaxCalculationResult, formatTaxAmount } from '@/lib/tax-calculation'
 import { ProductCard } from './components/InventoryIndicator'
 import { Product, CartItem, PRODUCT_CATEGORIES, isProductAvailable } from './types/product'
+import StatusBar from '@/components/pos/StatusBar'
+import TransactionValidator from '@/components/pos/TransactionValidator'
 
 // Real product interfaces and utilities imported from types/product.ts
 
@@ -286,6 +288,9 @@ export default function POSPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <Header currentPage="pos" />
+      
+      {/* Status Bar */}
+      <StatusBar />
 
       {/* Main Content */}
       <main className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4 lg:py-8">
@@ -449,6 +454,17 @@ export default function POSPage() {
                 ))
               )}
             </div>
+
+            {/* Transaction Validation */}
+            {cartItems.length > 0 && (
+              <div className="mb-4">
+                <TransactionValidator
+                  cartItems={cartItems}
+                  taxCalculation={taxCalculation}
+                  className="text-sm"
+                />
+              </div>
+            )}
 
             {/* Cart Total with Tax Breakdown */}
             <div className="border-t border-border pt-4 sm:pt-6">

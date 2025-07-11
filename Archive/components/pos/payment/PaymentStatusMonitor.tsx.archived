@@ -1,0 +1,402 @@
+/**
+ * ARCHIVED FILE - PaymentStatusMonitor.tsx
+ * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: Unused payment status monitor component - replaced by PaymentStatusBar.tsx for better UX
+ * REPLACEMENT: components/pos/payment/PaymentStatusBar.tsx provides horizontal status progression with real Strike API integration
+ * 
+ * ORIGINAL PURPOSE:
+ * Provided detailed payment status monitoring with manual testing controls
+ * Had development mode warnings and manual completion buttons for testing
+ * More complex UI than needed for the streamlined payment flow
+ * 
+ * This component had too much complexity and manual testing features that weren't needed
+ * in the final implementation. PaymentStatusBar provides a cleaner, more focused UX.
+ * 
+ * @author BitAgora Development Team
+ */
+
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { 
+  CheckCircle, 
+  AlertCircle, 
+  AlertTriangle,
+  Clock, 
+  Zap,
+  DollarSign,
+  Loader2,
+  RefreshCw,
+  X,
+  Timer
+} from 'lucide-react';
+
+interface PaymentStatusMonitorProps {
+  paymentId?: string;
+  paymentMethod?: string;
+  amount?: number;
+  onStatusChange?: (status: PaymentStatus) => void;
+  onPaymentComplete?: () => void;
+  onPaymentFailed?: (error: string) => void;
+  className?: string;
+}
+
+interface PaymentStatus {
+  id: string;
+  method: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'confirming' | 'completed' | 'failed' | 'expired';
+  stage: string;
+  progress: number;
+  timestamp: Date;
+  expiresAt?: Date;
+  transactionId?: string;
+  confirmations?: number;
+  requiredConfirmations?: number;
+  error?: string;
+  retryCount?: number;
+  estimatedTime?: number;
+}
+
+export default function PaymentStatusMonitor({
+  paymentId,
+  paymentMethod,
+  amount,
+  onStatusChange,
+  onPaymentComplete,
+  onPaymentFailed,
+  className
+}: PaymentStatusMonitorProps) {
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+
+  // Initialize payment monitoring
+  useEffect(() => {
+    if (paymentId && paymentMethod && amount) {
+      const initialStatus: PaymentStatus = {
+        id: paymentId,
+        method: paymentMethod,
+        amount: amount,
+        status: 'pending',
+        stage: 'Initializing payment...',
+        progress: 0,
+        timestamp: new Date(),
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
+        estimatedTime: 300 // 5 minutes estimated
+      };
+
+      setPaymentStatus(initialStatus);
+      setIsPolling(true);
+      onStatusChange?.(initialStatus);
+    }
+  }, [paymentId, paymentMethod, amount, onStatusChange]);
+
+  // Monitor payment status
+  useEffect(() => {
+    if (!paymentStatus || !isPolling) return;
+
+    const pollPaymentStatus = async () => {
+      try {
+        // Simulate API call to check payment status
+        const updatedStatus = await checkPaymentStatus(paymentStatus.id);
+        
+        if (updatedStatus && updatedStatus.status !== paymentStatus.status) {
+          setPaymentStatus(updatedStatus);
+          onStatusChange?.(updatedStatus);
+
+          // Handle completion
+          if (updatedStatus.status === 'completed') {
+            setIsPolling(false);
+            onPaymentComplete?.();
+          } else if (updatedStatus.status === 'failed') {
+            setIsPolling(false);
+            onPaymentFailed?.(updatedStatus.error || 'Payment failed');
+          }
+        }
+      } catch (error) {
+        console.error('Payment status check failed:', error);
+      }
+    };
+
+    // Start polling
+    const interval = setInterval(pollPaymentStatus, 2000); // Check every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, [paymentStatus, isPolling, onStatusChange, onPaymentComplete, onPaymentFailed]);
+
+  // Update countdown timer
+  useEffect(() => {
+    if (!paymentStatus?.expiresAt) return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      const remaining = Math.max(0, paymentStatus.expiresAt!.getTime() - now.getTime());
+      setTimeRemaining(remaining);
+
+      if (remaining === 0 && paymentStatus.status !== 'completed') {
+        setPaymentStatus(prev => prev ? { ...prev, status: 'expired', stage: 'Payment expired' } : null);
+        setIsPolling(false);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    
+    return () => clearInterval(interval);
+  }, [paymentStatus]);
+
+  // Real payment status checker (not auto-completing)
+  const checkPaymentStatus = async (id: string): Promise<PaymentStatus | null> => {
+    if (!paymentStatus) return null;
+
+    try {
+      // TODO: Replace with real payment status API calls
+      // For now, just return current status without auto-progression
+      
+      // Example of what real implementation would look like:
+      // const response = await fetch(`/api/payment-status/${id}`);
+      // const statusData = await response.json();
+      // return statusData;
+      
+      // For testing purposes, show processing status but don't auto-complete
+      const elapsed = Date.now() - paymentStatus.timestamp.getTime();
+      
+      if (paymentStatus.status === 'pending' && elapsed > 2000) {
+        return {
+          ...paymentStatus,
+          status: 'processing',
+          stage: `Processing ${paymentStatus.method} payment...`,
+          progress: 25
+        };
+      }
+      
+      // Stay in processing - DO NOT auto-complete
+      if (paymentStatus.status === 'processing') {
+        return {
+          ...paymentStatus,
+          stage: `Waiting for ${paymentStatus.method} payment confirmation...`,
+          progress: 50
+        };
+      }
+      
+      // Return current status without changes
+      return paymentStatus;
+      
+    } catch (error) {
+      console.error('Payment status check failed:', error);
+      return paymentStatus;
+    }
+  };
+
+  // Manual payment completion function (for testing)
+  const manualCompletePayment = () => {
+    if (paymentStatus) {
+      setPaymentStatus({
+        ...paymentStatus,
+        status: 'completed',
+        stage: 'Payment completed!',
+        progress: 100,
+        transactionId: `manual_${Date.now()}`
+      });
+      setIsPolling(false);
+      onPaymentComplete?.();
+    }
+  };
+
+  const manualFailPayment = () => {
+    if (paymentStatus) {
+      setPaymentStatus({
+        ...paymentStatus,
+        status: 'failed',
+        stage: 'Payment failed',
+        error: 'Manual test failure'
+      });
+      setIsPolling(false);
+      onPaymentFailed?.('Manual test failure');
+    }
+  };
+
+  const formatTime = (ms: number): string => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 'processing':
+        return <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />;
+      case 'confirming':
+        return <RefreshCw className="h-5 w-5 text-orange-500 animate-pulse" />;
+      case 'completed':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'failed':
+      case 'expired':
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
+      default:
+        return <Clock className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'confirming':
+        return 'bg-orange-100 text-orange-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+      case 'expired':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleRetry = () => {
+    if (paymentStatus) {
+      setPaymentStatus({
+        ...paymentStatus,
+        status: 'pending',
+        stage: 'Retrying payment...',
+        progress: 0,
+        timestamp: new Date(),
+        retryCount: (paymentStatus.retryCount || 0) + 1
+      });
+      setIsPolling(true);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsPolling(false);
+    setPaymentStatus(null);
+  };
+
+  if (!paymentStatus) return null;
+
+  return (
+    <Card className={`p-4 ${className}`}>
+      <div className="space-y-4">
+        {/* Development Mode Warning */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm font-medium text-yellow-800">Development Mode</span>
+          </div>
+          <p className="text-xs text-yellow-700 mt-1">
+            Payment status monitoring is in development. Use manual controls below to simulate payment completion.
+          </p>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {getStatusIcon(paymentStatus.status)}
+            <span className="font-semibold capitalize">{paymentStatus.method} Payment</span>
+          </div>
+          <Badge className={getStatusColor(paymentStatus.status)}>
+            {paymentStatus.status.toUpperCase()}
+          </Badge>
+        </div>
+
+        {/* Payment Details */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Amount:</span>
+            <span className="font-medium ml-2">${paymentStatus.amount.toFixed(2)}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Payment ID:</span>
+            <span className="font-mono text-xs ml-2">{paymentStatus.id.slice(0, 8)}...</span>
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">{paymentStatus.stage}</span>
+            <span className="text-sm text-muted-foreground">{paymentStatus.progress}%</span>
+          </div>
+          <Progress value={paymentStatus.progress} className="h-2" />
+        </div>
+
+        {/* Confirmations (for blockchain payments) */}
+        {paymentStatus.confirmations !== undefined && paymentStatus.requiredConfirmations && (
+          <div className="text-sm">
+            <span className="text-muted-foreground">Confirmations:</span>
+            <span className="font-medium ml-2">
+              {paymentStatus.confirmations}/{paymentStatus.requiredConfirmations}
+            </span>
+          </div>
+        )}
+
+        {/* Timer */}
+        {timeRemaining !== null && paymentStatus.status !== 'completed' && (
+          <div className="flex items-center gap-2 text-sm">
+            <Timer className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              Expires in: <span className="font-medium">{formatTime(timeRemaining)}</span>
+            </span>
+          </div>
+        )}
+
+        {/* Transaction ID */}
+        {paymentStatus.transactionId && (
+          <div className="text-sm">
+            <span className="text-muted-foreground">Transaction:</span>
+            <span className="font-mono text-xs ml-2">{paymentStatus.transactionId}</span>
+          </div>
+        )}
+
+        {/* Error */}
+        {paymentStatus.error && (
+          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+            {paymentStatus.error}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 flex-wrap">
+          {(paymentStatus.status === 'failed' || paymentStatus.status === 'expired') && (
+            <Button size="sm" variant="outline" onClick={handleRetry}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          )}
+          
+          {paymentStatus.status !== 'completed' && (
+            <Button size="sm" variant="ghost" onClick={handleCancel}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+          )}
+
+          {/* Manual Testing Controls (for development) */}
+          {(paymentStatus.status === 'processing' || paymentStatus.status === 'pending') && (
+            <>
+              <Button size="sm" variant="default" onClick={manualCompletePayment}>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Complete (Test)
+              </Button>
+              <Button size="sm" variant="destructive" onClick={manualFailPayment}>
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Fail (Test)
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+} 

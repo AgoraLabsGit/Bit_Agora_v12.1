@@ -45,8 +45,8 @@
 - [x] Payment settings configuration
 - [x] Crypto address validation (BTC, Lightning, USDT)
 - [x] QR code generation for payments
-- [ ] 🎯 **PRIORITY** Payment status monitoring
-- [ ] 🎯 **PRIORITY** Transaction validation
+- [x] 🎯 **PRIORITY** Payment status monitoring
+- [x] 🎯 **PRIORITY** Transaction validation
 - [ ] Real-time payment confirmation
 - [ ] Refund processing system
 

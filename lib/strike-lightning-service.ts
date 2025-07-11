@@ -1,4 +1,23 @@
 /**
+ * BitAgora Strike Lightning Service
+ * 
+ * Core Lightning Network payment processor for BitAgora POS system
+ * Integrates with Strike API for real Lightning payments and USD conversion
+ * 
+ * Features:
+ * - Generate Lightning invoices via Strike API (Create Invoice -> Generate Quote -> Get bolt11)
+ * - Real-time Bitcoin exchange rates from Strike
+ * - Invoice status monitoring for payment completion
+ * - Automatic fallback for development/testing scenarios
+ * 
+ * Current Phase: Production Lightning payments via Strike API
+ * Next Phase: Payment status monitoring and webhook verification
+ * 
+ * @version 3.0.0
+ * @author BitAgora Development Team
+ */
+
+/**
  * Strike Lightning Service
  * 
  * Integrates with Strike API for Lightning Network payments
@@ -248,6 +267,36 @@ export class StrikeLightningService {
     } catch (error) {
       console.warn('⚠️ Failed to get balances from Strike API:', error)
       return []
+    }
+  }
+
+  /**
+   * Check Strike invoice status for payment monitoring
+   */
+  static async checkInvoiceStatus(invoiceId: string): Promise<{
+    state: 'UNPAID' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'ERROR'
+    invoice?: StrikeInvoice
+    error?: string
+  }> {
+    try {
+      console.log(`🔄 Checking Strike invoice status: ${invoiceId}`)
+      
+      const invoice: StrikeInvoice = await this.makeRequest(`/invoices/${invoiceId}`)
+      
+      console.log(`✅ Invoice status: ${invoice.state}`)
+      
+      return {
+        state: invoice.state,
+        invoice
+      }
+      
+    } catch (error) {
+      console.error(`❌ Failed to check invoice status for ${invoiceId}:`, error)
+      
+      return {
+        state: 'ERROR',
+        error: error instanceof Error ? error.message : String(error)
+      }
     }
   }
 

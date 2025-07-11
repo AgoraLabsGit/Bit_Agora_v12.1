@@ -56,6 +56,8 @@ export const CryptoQRCode: React.FC<CryptoQRCodeProps> = ({
 
     if (qrContent) {
       generateQRCode();
+    } else {
+      setIsGenerating(false);
     }
   }, [qrContent]);
 

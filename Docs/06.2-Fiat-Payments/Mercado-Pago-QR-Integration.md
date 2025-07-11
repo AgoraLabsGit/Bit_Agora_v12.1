@@ -192,8 +192,8 @@ export class QRCodeService {
 
     // Format amount according to country's currency precision
     const formattedAmount = this.formatAmount(totalAmount, countryConfig.currency);
-
-    return {
+      
+      return {
       external_reference: externalReference, // Your invoice number
       title: `${merchantName} - Invoice ${externalReference}`,
       description: description || `Payment for invoice ${externalReference}`,

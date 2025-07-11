@@ -1,0 +1,51 @@
+/**
+ * ARCHIVED FILE - CardPaymentFlow.tsx
+ * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: Incomplete card payment stub - never implemented, placeholder for future Stripe integration
+ * REPLACEMENT: None - BitAgora currently focuses on crypto payments (Bitcoin, Lightning, USDT) via Strike API
+ * 
+ * ORIGINAL PURPOSE:
+ * Was intended as a placeholder for future Stripe credit card payment integration
+ * Only contained a "Coming Soon" message and back button
+ * Never had any actual payment processing logic
+ * 
+ * This component was archived because:
+ * 1. It was never implemented beyond a stub
+ * 2. BitAgora's current focus is on crypto payments only
+ * 3. If card payments are needed in the future, this would need to be completely rewritten
+ * 
+ * @author BitAgora Development Team
+ */
+
+"use client"
+
+import { Button } from "@/components/ui/button"
+
+interface CardPaymentFlowProps {
+  amount: number
+  cartItems: any[]
+  onPaymentComplete: () => void
+  onBack: () => void
+}
+
+export const CardPaymentFlow = ({
+  amount,
+  onBack
+}: CardPaymentFlowProps) => {
+  return (
+    <div className="space-y-4">
+      <div className="text-center py-8">
+        <p className="text-lg font-medium">Credit Card Payment</p>
+        <p className="text-muted-foreground">Coming Soon - Phase 3</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Stripe integration will be available in the next release
+        </p>
+      </div>
+
+      <Button variant="outline" onClick={onBack} className="w-full">
+        Back to Payment Selection
+      </Button>
+    </div>
+  )
+} 

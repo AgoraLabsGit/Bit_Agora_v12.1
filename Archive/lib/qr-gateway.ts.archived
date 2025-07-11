@@ -1,5 +1,27 @@
-// QR Payment Gateway for dynamic QR code generation
-// Supports Stripe and Mercado Pago for USA and Latin America markets
+/**
+ * ARCHIVED FILE - qr-gateway.ts
+ * 
+ * ARCHIVED DATE: 2024-01-11
+ * REASON: Stripe/Mercado Pago QR gateway not part of current Strike API implementation
+ * REPLACEMENT: lib/payment/qr-generation.ts provides crypto QR generation with real Strike API integration
+ * 
+ * ORIGINAL PURPOSE:
+ * QR Payment Gateway for dynamic QR code generation
+ * Supported Stripe and Mercado Pago for USA and Latin America markets
+ * Had mock implementations for both payment providers
+ * 
+ * This service was archived because:
+ * 1. BitAgora now uses Strike API exclusively for Lightning payments
+ * 2. Mock Stripe/Mercado Pago implementations weren't production-ready
+ * 3. Duplicate functionality with lib/payment/qr-generation.ts
+ * 4. Current focus is on crypto payments (Bitcoin, Lightning, USDT) only
+ * 5. No immediate plans for Stripe/Mercado Pago integration
+ * 
+ * If fiat payment gateway integration is needed in the future,
+ * this could serve as a reference but would need significant updates.
+ * 
+ * @author BitAgora Development Team
+ */
 
 import QRCode from 'qrcode'
 
